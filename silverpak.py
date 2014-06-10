@@ -14,6 +14,8 @@ supported devices:
    - http://www.linengineering.com/LinE/contents/stepmotors/pdf/Silverpak17C-256uStepping.pdf
 """
 
+import fnmatch
+import os
 import sys
 import time, threading
 
@@ -902,9 +904,15 @@ def SearchComPorts(portName=Silverpak.DefaultPortname, baudRate=Silverpak.Defaul
     if any parameters are not set, all possible values for the parameters will be attempted.
     This method can raise an ArgumentOutOfRangeException or an ValueError if passed values are invalid.
     """
+    portNames= []
     if portName == Silverpak.DefaultPortname:
         # Search all COM ports
-        portNames = ["COM%i" % i for i in range(1, 10)]
+        if os.name == 'posix' or os.name == 'mac':
+            for filename in os.listdir('/dev/'):
+                if fnmatch.fnmatch(filename, 'cu.usbserial*') or fnmatch.fnmatch(filename, 'tty*') or fnmatch.fnmatch(filename, 'COM*'):
+                    portNames.append('/dev/' + filename)
+        else:
+            portNames = ["COM%i" % i for i in range(1, 10)]
     else:
         # Search a specific COM port
         portNames = [portName]

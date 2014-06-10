@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'syringe_pump_controller_ui.ui'
 #
-# Created: Thu Jun  5 16:01:39 2014
+# Created: Tue Jun 10 14:22:32 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(726, 457)
+        MainWindow.resize(693, 457)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -57,15 +57,15 @@ class Ui_MainWindow(object):
         self.label = QtWidgets.QLabel(self.injection_tab)
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-        self.lineEdit = QtWidgets.QLineEdit(self.injection_tab)
+        self.inject_amount_num = QtWidgets.QLineEdit(self.injection_tab)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit.sizePolicy().hasHeightForWidth())
-        self.lineEdit.setSizePolicy(sizePolicy)
-        self.lineEdit.setInputMethodHints(QtCore.Qt.ImhDigitsOnly)
-        self.lineEdit.setObjectName("lineEdit")
-        self.gridLayout.addWidget(self.lineEdit, 0, 2, 1, 1)
+        sizePolicy.setHeightForWidth(self.inject_amount_num.sizePolicy().hasHeightForWidth())
+        self.inject_amount_num.setSizePolicy(sizePolicy)
+        self.inject_amount_num.setInputMethodHints(QtCore.Qt.ImhDigitsOnly)
+        self.inject_amount_num.setObjectName("inject_amount_num")
+        self.gridLayout.addWidget(self.inject_amount_num, 0, 2, 1, 1)
         self.lineEdit_2 = QtWidgets.QLineEdit(self.injection_tab)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -193,12 +193,16 @@ class Ui_MainWindow(object):
         self.gridLayout_6.addWidget(self.label_13, 0, 0, 1, 1)
         self.act_vol_unit = QtWidgets.QComboBox(self.calibration_tab)
         self.act_vol_unit.setObjectName("act_vol_unit")
+        self.act_vol_unit.addItem("")
         self.gridLayout_6.addWidget(self.act_vol_unit, 0, 1, 1, 1)
         self.label_14 = QtWidgets.QLabel(self.calibration_tab)
         self.label_14.setObjectName("label_14")
         self.gridLayout_6.addWidget(self.label_14, 1, 0, 1, 1)
         self.act_rot_unit = QtWidgets.QComboBox(self.calibration_tab)
         self.act_rot_unit.setObjectName("act_rot_unit")
+        self.act_rot_unit.addItem("")
+        self.act_rot_unit.addItem("")
+        self.act_rot_unit.addItem("")
         self.gridLayout_6.addWidget(self.act_rot_unit, 1, 1, 1, 1)
         self.act_vol_num = QtWidgets.QLineEdit(self.calibration_tab)
         self.act_vol_num.setObjectName("act_vol_num")
@@ -331,7 +335,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -363,7 +367,11 @@ class Ui_MainWindow(object):
         self.pushButton_2.setText(_translate("MainWindow", "Pump"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.pumpin_tab), _translate("MainWindow", "Pumping"))
         self.label_13.setText(_translate("MainWindow", "Actual volume"))
+        self.act_vol_unit.setItemText(0, _translate("MainWindow", "mL"))
         self.label_14.setText(_translate("MainWindow", "Actual rotations"))
+        self.act_rot_unit.setItemText(0, _translate("MainWindow", "°"))
+        self.act_rot_unit.setItemText(1, _translate("MainWindow", "θ"))
+        self.act_rot_unit.setItemText(2, _translate("MainWindow", "no. rev."))
         self.label_12.setText(_translate("MainWindow", "Rotations"))
         self.cal_by_vol_unit.setItemText(0, _translate("MainWindow", "mL"))
         self.cal_by_rot_unit.setItemText(0, _translate("MainWindow", "°"))

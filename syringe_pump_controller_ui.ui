@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>726</width>
+    <width>693</width>
     <height>457</height>
    </rect>
   </property>
@@ -40,7 +40,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="tabsClosable">
        <bool>false</bool>
@@ -135,7 +135,7 @@
              </widget>
             </item>
             <item row="0" column="2">
-             <widget class="QLineEdit" name="lineEdit">
+             <widget class="QLineEdit" name="inject_amount_num">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -439,7 +439,13 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QComboBox" name="act_vol_unit"/>
+             <widget class="QComboBox" name="act_vol_unit">
+              <item>
+               <property name="text">
+                <string>mL</string>
+               </property>
+              </item>
+             </widget>
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label_14">
@@ -449,7 +455,23 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QComboBox" name="act_rot_unit"/>
+             <widget class="QComboBox" name="act_rot_unit">
+              <item>
+               <property name="text">
+                <string>°</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>θ</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>no. rev.</string>
+               </property>
+              </item>
+             </widget>
             </item>
             <item row="0" column="2">
              <widget class="QLineEdit" name="act_vol_num"/>
