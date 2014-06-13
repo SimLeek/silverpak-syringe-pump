@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'syringe_pump_controller_ui.ui'
 #
-# Created: Fri Jun 13 13:38:40 2014
+# Created: Fri Jun 13 13:59:21 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -357,9 +357,9 @@ class Ui_MainWindow(object):
         self.RUN = QtWidgets.QPushButton(self.command_and_stop_pane)
         self.RUN.setObjectName("RUN")
         self.verticalLayout_6.addWidget(self.RUN)
-        self.pushButton_4 = QtWidgets.QPushButton(self.command_and_stop_pane)
-        self.pushButton_4.setObjectName("pushButton_4")
-        self.verticalLayout_6.addWidget(self.pushButton_4)
+        self.STOP = QtWidgets.QPushButton(self.command_and_stop_pane)
+        self.STOP.setObjectName("STOP")
+        self.verticalLayout_6.addWidget(self.STOP)
         self.horizontalLayout_7.addLayout(self.verticalLayout_6)
         self.gridLayout_8.addLayout(self.horizontalLayout_7, 0, 1, 1, 1)
         self.verticalLayout.addWidget(self.command_and_stop_pane)
@@ -435,5 +435,5 @@ class Ui_MainWindow(object):
         self.calibrate_button.setText(_translate("MainWindow", "Calibrate"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.calibration_tab), _translate("MainWindow", "Calibration"))
         self.RUN.setText(_translate("MainWindow", "RUN"))
-        self.pushButton_4.setText(_translate("MainWindow", "STOP"))
+        self.STOP.setText(_translate("MainWindow", "STOP"))
 

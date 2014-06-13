@@ -24,6 +24,7 @@ class ControllerWindow(QMainWindow):
         self.ui.calibrate_button.clicked.connect(self.handleCalib)
         self.ui.inject_button.clicked.connect(self.handleInject)
         self.ui.pump_button.clicked.connect(self.handlePump)
+        self.ui.STOP.clicked.connect(self.stop)
         
 
         self.mL_per_rad=0.33/(2*math.pi)#guessed at
@@ -55,6 +56,9 @@ Please setup your system so this will not ruin whatever you're doing, then press
         self.ui.console.appendPlainText("Motor initialized.")
 
         self.position=self.motor.position()
+
+    def stop(self):
+        self.motor.sendRawCommand("/1TR")
 
     def handlePump(self):
         self.vol=float(self.ui.pumping_vol_num.text())
