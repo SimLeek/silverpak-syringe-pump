@@ -23,6 +23,7 @@ class ControllerWindow(QMainWindow):
         self.ui.calibrate_pump_button.clicked.connect(self.handleCalibInject)
         self.ui.calibrate_button.clicked.connect(self.handleCalib)
         self.ui.inject_button.clicked.connect(self.handleInject)
+        self.ui.pump_button.clicked.connect(self.handlePump)
         
 
         self.mL_per_rad=0.33/(2*math.pi)#guessed at
@@ -54,9 +55,74 @@ Please setup your system so this will not ruin whatever you're doing, then press
         self.ui.console.appendPlainText("Motor initialized.")
 
         self.position=self.motor.position()
+
+    def handlePump(self):
+        self.vol=float(self.ui.pumping_vol_num.text())
+        no_pumps=float(self.ui.pumping_pumps_num.text())
+        pull_time=float(self.ui.pumping_pull_time_num.text())
+        top_wait_time=float(self.ui.pumping_top_wait_time_num.text())
+        push_time=float(self.ui.pumping_push_time_num.text())
+        bottom_wait_time=float(self.ui.pumping_bottom_wait_time_num.text())
+
+        if str(self.ui.pumping_vol_unit.currentText())=="mL":
+            pass
+
+        if str(self.ui.pumping_pumps_unit.currentText())=="num":
+            pass
+        elif str(self.ui.pumping_pumps_unit.currentText())=="K":
+            no_pumps=no_pumps*1000
+        elif str(self.ui.pumping_pumps_unit.currentText())=="K":
+            no_pumps=no_pumps*1000000
+
+        if str(self.ui.pumping_pull_time_unit.currentText())=="seconds":
+            pass
+        elif str(self.ui.pumping_pull_time_unit.currentText())=="minutes":
+            pull_time=pull_time*60
+        elif str(self.ui.pumping_pull_time_unit.currentText())=="minutes":
+            pull_time=pull_time*3600
+
+        if str(self.ui.pumping_top_wait_time_unit.currentText())=="seconds":
+            top_wait_time=top_wait_time*1000
+        elif str(self.ui.pumping_top_wait_time_unit.currentText())=="minutes":
+            top_wait_time=top_wait_time*1000*60
+        elif str(self.ui.pumping_top_wait_time_unit.currentText())=="hours":
+            top_wait_time=top_wait_time*1000*3600
+
+        if str(self.ui.pumping_push_time_unit.currentText())=="seconds":
+            pass
+        elif str(self.ui.pumping_push_time_unit.currentText())=="minutes":
+            push_time=push_time*60
+        elif str(self.ui.pumping_push_time_unit.currentText())=="minutes":
+            push_time=push_time*3600
+
+        if str(self.ui.pumping_bottom_wait_time_unit.currentText())=="seconds":
+            bottom_wait_time=bottom_wait_time*1000
+        elif str(self.ui.pumping_bottom_wait_time_unit.currentText())=="minutes":
+            bottom_wait_time=bottom_wait_time*1000*60
+        elif str(self.ui.pumping_bottom_wait_time_unit.currentText())=="hours":
+            bottom_wait_time=v*1000*3600
+            
+        pos2=self.position
+        self.rad = self.vol/self.mL_per_rad
+        pos1=pos2+self.rad*self.pos_per_rad
+
+        
+
+        pull_vel=abs((self.rad*self.pos_per_rad)/pull_time)
+        push_vel=abs((self.rad*self.pos_per_rad)/push_time)
+
+        if pull_vel>732143 or push_vel>732143:
+            self.ui.console.appendPlainText("err: motor is not accurate at high speeds.")
+            return
+
+        exe="/1gV"+str(int(pull_vel))+"A"+str(int(pos2))+"M"+str(int(top_wait_time))+"V"+str(int(push_vel))+"A"+str(int(pos1))+"M"+str(int(bottom_wait_time))+"G"+str(int(no_pumps))+"R"
+        print(exe)
+        self.motor.sendRawCommand(exe)
+        
     
     def handleInject(self):
         self.vol = float(self.ui.inject_amount_num.text())
+        time=float(self.ui.inject_time_num.text())
         if str(self.ui.injection_vol_unit.currentText())=="cc":
             pass
         elif str(self.ui.injection_vol_unit.currentText())=="mL":
@@ -71,7 +137,19 @@ Please setup your system so this will not ruin whatever you're doing, then press
             self.vol=self.vol*4.92892
         elif str(self.ui.injection_vol_unit.currentText())=="Buckets":
             self.vol=self.vol*3785.41*4
+        if str(self.ui.injection_time_unit.currentText())=="seconds":
+            pass
+        elif str(self.ui.injection_time_unit.currentText())=="minutes":
+            time=time*60
+        elif str(self.ui.injection_time_unit.currentText())=="minutes":
+            time=time*3600
         self.rad = self.vol/self.mL_per_rad
+        vel=(abs(self.rad*self.pos_per_rad)/time)
+        print(vel)
+        if vel>732143:
+            self.ui.console.appendPlainText("err: motor is not accurate at high speeds.")
+            return
+        self.motor.sendRawCommand("/1V"+str(int(vel))+"R")
         self.pos=self.pos+self.rad*self.pos_per_rad
         if self.pos <0:
             self.pos=0
