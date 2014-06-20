@@ -253,7 +253,7 @@
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_4">
-            <item row="1" column="1">
+            <item row="0" column="1">
              <widget class="QComboBox" name="pumping_vol_unit">
               <item>
                <property name="text">
@@ -262,29 +262,10 @@
               </item>
              </widget>
             </item>
-            <item row="1" column="2">
+            <item row="0" column="2">
              <widget class="QLineEdit" name="pumping_vol_num"/>
             </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="pumping_Q_unit">
-              <item>
-               <property name="text">
-                <string>mL/s</string>
-               </property>
-              </item>
-             </widget>
-            </item>
             <item row="0" column="0">
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Q(volumetric flow rate)</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QLineEdit" name="pumping_Q_num"/>
-            </item>
-            <item row="1" column="0">
              <widget class="QLabel" name="label_5">
               <property name="text">
                <string>volume</string>
@@ -296,20 +277,13 @@
           <item row="0" column="1">
            <layout class="QGridLayout" name="gridLayout_5">
             <item row="3" column="0">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>Top wait time</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
              <widget class="QLabel" name="label_9">
               <property name="text">
                <string>Push time</string>
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
+            <item row="4" column="0">
              <widget class="QLabel" name="label_8">
               <property name="text">
                <string>Bottom wait time</string>
@@ -317,16 +291,23 @@
              </widget>
             </item>
             <item row="2" column="0">
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>Top wait time</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
              <widget class="QLabel" name="label_4">
               <property name="text">
                <string>Pull time</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="2">
+            <item row="1" column="2">
              <widget class="QLineEdit" name="pumping_pull_time_num"/>
             </item>
-            <item row="2" column="1">
+            <item row="1" column="1">
              <widget class="QComboBox" name="pumping_pull_time_unit">
               <item>
                <property name="text">
@@ -345,7 +326,7 @@
               </item>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="0" column="1">
              <widget class="QComboBox" name="pumping_pumps_unit">
               <item>
                <property name="text">
@@ -364,7 +345,7 @@
               </item>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="2" column="1">
              <widget class="QComboBox" name="pumping_top_wait_time_unit">
               <item>
                <property name="text">
@@ -383,7 +364,7 @@
               </item>
              </widget>
             </item>
-            <item row="4" column="1">
+            <item row="3" column="1">
              <widget class="QComboBox" name="pumping_push_time_unit">
               <item>
                <property name="text">
@@ -402,7 +383,7 @@
               </item>
              </widget>
             </item>
-            <item row="5" column="1">
+            <item row="4" column="1">
              <widget class="QComboBox" name="pumping_bottom_wait_time_unit">
               <item>
                <property name="text">
@@ -421,52 +402,23 @@
               </item>
              </widget>
             </item>
-            <item row="1" column="0">
+            <item row="0" column="0">
              <widget class="QLabel" name="label_10">
               <property name="text">
                <string>No. of pumps</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="pumping_total_time_unit">
-              <item>
-               <property name="text">
-                <string>seconds</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>minutes</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>hours</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Total time</string>
-              </property>
-             </widget>
+            <item row="2" column="2">
+             <widget class="QLineEdit" name="pumping_top_wait_time_num"/>
             </item>
             <item row="0" column="2">
-             <widget class="QLineEdit" name="pumping_total_time_num"/>
-            </item>
-            <item row="1" column="2">
              <widget class="QLineEdit" name="pumping_pumps_num"/>
             </item>
             <item row="3" column="2">
-             <widget class="QLineEdit" name="pumping_top_wait_time_num"/>
-            </item>
-            <item row="4" column="2">
              <widget class="QLineEdit" name="pumping_push_time_num"/>
             </item>
-            <item row="5" column="2">
+            <item row="4" column="2">
              <widget class="QLineEdit" name="pumping_bottom_wait_time_num"/>
             </item>
            </layout>

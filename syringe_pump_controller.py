@@ -14,8 +14,8 @@ class ControllerWindow(QMainWindow):
         super(ControllerWindow, self).__init__()
 
         self.motor = silverpak.Silverpak()
-        if not self.motor.findAndConnect():
-            sys.exit("no silverpak found")
+        #if not self.motor.findAndConnect():
+        #    sys.exit("no silverpak found")
     
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -106,7 +106,7 @@ Please setup your system so this will not ruin whatever you're doing, then press
         elif str(self.ui.pumping_bottom_wait_time_unit.currentText())=="hours":
             bottom_wait_time=v*1000*3600
             
-        pos2=self.position
+        pos2=0
         self.rad = self.vol/self.mL_per_rad
         pos1=pos2+self.rad*self.pos_per_rad
 
