@@ -14,8 +14,8 @@ class ControllerWindow(QMainWindow):
         super(ControllerWindow, self).__init__()
 
         self.motor = silverpak.Silverpak()
-        #if not self.motor.findAndConnect():
-        #    sys.exit("no silverpak found")
+        if not self.motor.findAndConnect():
+            sys.exit("no silverpak found")
     
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -25,16 +25,30 @@ class ControllerWindow(QMainWindow):
         self.ui.inject_button.clicked.connect(self.handleInject)
         self.ui.pump_button.clicked.connect(self.handlePump)
         self.ui.STOP.clicked.connect(self.stop)
-        
+        self.ui.Reset_0_button.clicked.connect(self.reset_0)
+        self.ui.Revers_button.clicked.connect(self.reverse)
 
-        self.mL_per_rad=0.33/(2*math.pi)#guessed at
+        self.mL_per_rad=0.016631691553103064#found experimentally
         self.pos_per_rad=8156.690833459656#found experimentally (not accurate, found on free motor)
-
+        self.is_rev=False
         self.pos=0
 
         self.vol=None
         self.rad=None
 
+    def reset_0(self):
+        self.motor.sendRawCommand("/1z0R")
+    
+    def reverse(self):
+        if self.is_rev:
+            self.motor.sendRawCommand("/1F0R")
+            print("/1F0R")
+            self.is_rev=False
+        elif not self.is_rev:
+            self.motor.sendRawCommand("/1F1R")
+            print("/1F1R")
+            self.is_rev=True
+    
     def init2(self):
         init_text="""To initialize, the motor must spin a few times.
 Please setup your system so this will not ruin whatever you're doing, then press RUN."""
@@ -55,7 +69,12 @@ Please setup your system so this will not ruin whatever you're doing, then press
             pass
         self.ui.console.appendPlainText("Motor initialized.")
 
-        self.position=self.motor.position()
+    def getPosition(self):
+        txt=self.motor.sendRawCommand("/1?0")
+        print(str(txt))
+        n=[int(s) for s in txt.split('\x00') if s.isdigit()]
+        print(n)
+        return int(n[0])
 
     def stop(self):
         self.motor.sendRawCommand("/1TR")
@@ -67,6 +86,10 @@ Please setup your system so this will not ruin whatever you're doing, then press
         top_wait_time=float(self.ui.pumping_top_wait_time_num.text())
         push_time=float(self.ui.pumping_push_time_num.text())
         bottom_wait_time=float(self.ui.pumping_bottom_wait_time_num.text())
+
+        if self.vol<0 or no_pumps<0 or pull_time<0 or top_wait_time<0 or push_time<0 or bottom_wait_time<0:
+            self.ui.console.appendPlainText("err: negative values not allowed.")
+            return
 
         if str(self.ui.pumping_vol_unit.currentText())=="mL":
             pass
@@ -106,11 +129,9 @@ Please setup your system so this will not ruin whatever you're doing, then press
         elif str(self.ui.pumping_bottom_wait_time_unit.currentText())=="hours":
             bottom_wait_time=v*1000*3600
             
-        pos2=0
+        pos2=self.getPosition()
         self.rad = self.vol/self.mL_per_rad
         pos1=pos2+self.rad*self.pos_per_rad
-
-        
 
         pull_vel=abs((self.rad*self.pos_per_rad)/pull_time)
         push_vel=abs((self.rad*self.pos_per_rad)/push_time)
@@ -154,8 +175,9 @@ Please setup your system so this will not ruin whatever you're doing, then press
             self.ui.console.appendPlainText("err: motor is not accurate at high speeds.")
             return
         self.motor.sendRawCommand("/1V"+str(int(vel))+"R")
-        self.pos=self.pos+self.rad*self.pos_per_rad
+        self.pos=self.getPosition()+self.rad*self.pos_per_rad
         if self.pos <0:
+            self.ui.console.appendPlainText("warn: could not go past 0 position.")
             self.pos=0
         print(self.pos)
         self.motor.sendRawCommand("/1A"+str(int(self.pos))+"R")
@@ -177,8 +199,9 @@ Please setup your system so this will not ruin whatever you're doing, then press
             elif str(self.ui.cal_by_rot_unit.currentText()) == "no. rev.":
                 self.rad= self.rad*(2*math.pi)
         print(self.motor.position(),self.rad*self.pos_per_rad)
-        self.pos=self.pos+self.rad*self.pos_per_rad
+        self.pos=self.getPosition()+self.rad*self.pos_per_rad
         if self.pos <0:
+            self.ui.console.appendPlainText("warn: could not go past 0 position.")
             self.pos=0
         print(self.pos)
         self.motor.sendRawCommand("/1A"+str(int(self.pos))+"R")
@@ -232,5 +255,5 @@ if __name__ == '__main__':
     wind.init2()
     
     sys.exit(app.exec_())
-	
-	
+    
+    

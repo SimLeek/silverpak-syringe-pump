@@ -26,15 +26,29 @@ class ControllerWindow(QMainWindow):
         self.ui.inject_button.clicked.connect(self.handleInject)
         self.ui.pump_button.clicked.connect(self.handlePump)
         self.ui.STOP.clicked.connect(self.stop)
-        
+        self.ui.Reset_0_button.clicked.connect(self.reset_0)
+        self.ui.Revers_button.clicked.connect(self.reverse)
 
-        self.mL_per_rad=0.33/(2*math.pi)#guessed at
+        self.mL_per_rad=0.016631691553103064#found experimentally
         self.pos_per_rad=8156.690833459656#found experimentally (not accurate, found on free motor)
 
         self.pos=0
 
         self.vol=None
         self.rad=None
+
+    def reset_0(self):
+        self.motor.sendRawCommand("/1z0R")
+    
+    def reverse(self):
+        if self.is_rev:
+            self.motor.sendRawCommand("/1F0R")
+            print("/1F0R")
+            self.is_rev=False
+        elif not self.is_rev:
+            self.motor.sendRawCommand("/1F1R")
+            print("/1F1R")
+            self.is_rev=True
 
     def init2(self):
         init_text="""To initialize, the motor must spin a few times.
