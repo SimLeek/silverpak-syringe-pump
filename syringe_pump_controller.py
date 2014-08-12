@@ -1,3 +1,5 @@
+# vim: set expandtab tabstop=4:
+
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from syringe_pump_controller_ui import Ui_MainWindow
@@ -5,6 +7,7 @@ import silverpak
 import optparse
 import math
 import threading
+import xml.etree.ElementTree as ET
 
 class ControllerWindow(QMainWindow):
 
@@ -14,8 +17,8 @@ class ControllerWindow(QMainWindow):
         super(ControllerWindow, self).__init__()
 
         self.motor = silverpak.Silverpak()
-        if not self.motor.findAndConnect():
-            sys.exit("no silverpak found")
+        #if not self.motor.findAndConnect():
+        #    sys.exit("no silverpak found")
     
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -28,13 +31,49 @@ class ControllerWindow(QMainWindow):
         self.ui.Reset_0_button.clicked.connect(self.reset_0)
         self.ui.Revers_button.clicked.connect(self.reverse)
 
-        self.mL_per_rad=0.016631691553103064#found experimentally
-        self.pos_per_rad=8156.690833459656#found experimentally (not accurate, found on free motor)
+        self.parse_xml('syringe_pump_data.xml')
+
         self.is_rev=False
         self.pos=0
 
         self.vol=None
         self.rad=None
+
+    #get serialized constants that may change between motors
+    def parse_xml(self, filename):
+        tree=ET.parse(filename)
+        root=tree.getroot()
+        #if not root.tag=='constants'
+        #    
+
+        self.xml_good=True
+
+        for child in root:
+            if child.tag=='mL_per_rad':
+                self.mL_per_rad=float(child.text)
+            elif child.tag=='pos_per_rad':
+                self.pos_per_rad=float(child.text)
+
+        if self.mL_per_rad==None:
+            self.mL_per_rad=0.016631691553103064#found experimentally
+            self.xml_good=False
+        if self.pos_per_rad==None:
+            self.pos_per_rad=8156.69083345965#found experimentally(on free motor)
+            self.xml_good=False
+
+        if not self.xml_good:
+            self.write_xml(filename)
+    
+    #serialize constants that may change between motors
+    def write_xml(self,filename):
+        root=ET.Element('constants')
+        mL_per_rad=ET.SubElement(root, 'mL_per_rad')
+        mL_per_rad.text=str(self.mL_per_rad)
+        pos_per_rad=ET.SubElement(root, 'pos_per_rad')
+        pos_per_rad.text=str(self.pos_per_rad)
+
+        tree=ET.ElementTree(root)
+        tree.write(filename)
 
     def reset_0(self):
         self.motor.sendRawCommand("/1z0R")
@@ -215,6 +254,7 @@ Please setup your system so this will not ruin whatever you're doing, then press
             print("oldmLpr: "+str(self.mL_per_rad))
             self.mL_per_rad=actVol/self.rad
             print("newmLpr: "+str(self.mL_per_rad))
+            self.write_xml('syringe_pump_data.xml')
         else:#by rotations
             #rotations were entered
             actRad = float(self.ui.act_rot_num.text())
@@ -227,7 +267,7 @@ Please setup your system so this will not ruin whatever you're doing, then press
             print("oldppr: "+str(self.pos_per_rad))
             self.pos_per_rad=(self.rad*self.pos_per_rad)/actRad
             print("newppr: "+str(self.pos_per_rad))
-            
+            self.write_xml('syringe_pump_data.xml')
 
     def write(self, text):
         self.ui.plainTextEdit.insertPlainText(text)
