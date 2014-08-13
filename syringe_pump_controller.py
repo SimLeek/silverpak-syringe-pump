@@ -58,6 +58,9 @@ class ControllerWindow(QMainWindow):
             else:
                 print("default rev")
                 self.is_rev=False
+                #todo: next command should go here, but I need to test it.
+            self.motor.sendRawCommand("/1F1R")
+
         except TypeError:
             print("No motor connected. Entering testing mode.")
 
@@ -150,14 +153,14 @@ Please setup your system so this will not ruin whatever you're doing, then press
     
     def reverse(self):
         """This reverses the direction of the motor and saves the current direction to the motor and the running program."""
-        if self.is_rev:
+        if not self.is_rev:
             self.motor.sendRawCommand("/1F0R")
-            self.motor.sendRawCommand("/1s1p0R")#store direction
+            self.motor.sendRawCommand("/1s1p1R")#store direction
             print("/1F0R")
             self.is_rev=False
-        elif not self.is_rev:
+        elif self.is_rev:
             self.motor.sendRawCommand("/1F1R")
-            self.motor.sendRawCommand("/1s1p1R")
+            self.motor.sendRawCommand("/1s1p0R")
             print("/1F1R")
             self.is_rev=True 
 
