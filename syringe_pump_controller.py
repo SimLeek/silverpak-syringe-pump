@@ -35,10 +35,17 @@ class ControllerWindow(QMainWindow):
         self.ui.calibrate_button.clicked.connect(self.handleCalib)
         self.ui.inject_button.clicked.connect(self.handleInject)
         self.ui.pump_button.clicked.connect(self.handlePump)
-        self.ui.STOP.clicked.connect(self.stop)
-        self.ui.Reset_0_button.clicked.connect(self.reset_0)
-        self.ui.Revers_button.clicked.connect(self.reverse)
+        self.ui.STOP.clicked.connect(self.stop)        
+        self.ui.reverse_check.stateChanged.connect(self.reverse)
+        self.ui.LH_thread_check.stateChanged.connect(self.change_thread)
         self.ui.RUN.clicked.connect(self.init_motor)
+
+        self.ui.no_min_button.setDown(True)
+        self.ui.no_max_button.setDown(True)
+        self.ui.set_min_button.clicked.connect(self.set_min)
+        self.ui.set_max_button.clicked.connect(self.set_max)
+        self.ui.no_min_button.clicked.connect(self.no_min)
+        self.ui.no_max_button.clicked.connect(self.no_max)
 
         #</UI>
 
@@ -59,7 +66,7 @@ class ControllerWindow(QMainWindow):
                 print("default rev")
                 self.is_rev=False
                 #todo: next command should go here, but I need to test it.
-            self.motor.sendRawCommand("/1F1R")
+            #self.motor.sendRawCommand("/1F1R")
 
         except TypeError:
             print("No motor connected. Entering testing mode.")
@@ -147,22 +154,50 @@ Please setup your system so this will not ruin whatever you're doing, then press
         self.ui.calib_ml_per_rad_line.setText(str(self.mL_per_rad))
         self.ui.calib_pos_per_rad_line.setText(str(self.pos_per_rad))
 
-    def reset_0(self):
-        """This resets the motor to position 0."""
+    def no_max(self):
+        """This sets the motor to the middle of possible values."""
+        self.motor.sendRawCommand("/1z6073741823R")
+        self.ui.no_max_button.setDown(True)
+        self.ui.set_max_button.setDown(False)
+
+    def set_max(self):
+        """This sets the current position to the maximum cc."""
         self.motor.sendRawCommand("/1z0R")
+        self.ui.set_max_button.setDown(True)
+        self.ui.no_max_button.setDown(False)
+
+    def set_min(self):
+        """This sets the current position to the minimum cc."""
+        self.max_pos=self.pos
+        self.ui.set_min_button.setDown(True)
+        self.ui.no_min_button.setDown(False)
+
+    def no_min(self):
+        """This sets the max position to the maximum possible position."""
+        self.max_pos=2147483647#(2^31)-1
+        self.ui.no_min_button.setDown(True)
+        self.ui.set_min_button.setDown(False)
     
     def reverse(self):
         """This reverses the direction of the motor and saves the current direction to the motor and the running program."""
-        if not self.is_rev:
-            self.motor.sendRawCommand("/1F0R")
+        if (self.is_rev ^ self.ui.LH_thread_check.isChecked()):
+            self.motor.sendRawCommand("/1F1R")
             self.motor.sendRawCommand("/1s1p1R")#store direction
             print("/1F0R")
-            self.is_rev=False
-        elif self.is_rev:
-            self.motor.sendRawCommand("/1F1R")
+            self.is_rev=not self.is_rev
+        else:
+            self.motor.sendRawCommand("/1F0R")
             self.motor.sendRawCommand("/1s1p0R")
             print("/1F1R")
-            self.is_rev=True 
+            self.is_rev=not self.is_rev 
+
+        #double check check
+        #self.ui.reverse_check.setChecked(self.is_rev ^ self.ui.LH_thread_check.isChecked())
+        #no, that actually leads to an infinite loop
+
+    def change_thread(self):
+        """This changes the text on the reverse button without changing the direction of the motor."""
+        self.ui.reverse_check.setChecked(not self.ui.reverse_check.isChecked())
 
     def init_motor(self):
         """This initializes the motor using the silverpak init command and sets valid velocity and acceleration values."""
