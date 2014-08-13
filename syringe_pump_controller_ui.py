@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'syringe_pump_controller_ui.ui'
 #
-# Created: Fri Jul 11 16:45:47 2014
+# Created: Tue Aug 12 16:39:57 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -194,6 +194,27 @@ class Ui_MainWindow(object):
         self.calibration_tab.setObjectName("calibration_tab")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.calibration_tab)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.label_6 = QtWidgets.QLabel(self.calibration_tab)
+        self.label_6.setObjectName("label_6")
+        self.horizontalLayout_4.addWidget(self.label_6)
+        self.calib_ml_per_rad_line = QtWidgets.QLineEdit(self.calibration_tab)
+        self.calib_ml_per_rad_line.setObjectName("calib_ml_per_rad_line")
+        self.horizontalLayout_4.addWidget(self.calib_ml_per_rad_line)
+        self.label_15 = QtWidgets.QLabel(self.calibration_tab)
+        self.label_15.setObjectName("label_15")
+        self.horizontalLayout_4.addWidget(self.label_15)
+        self.calib_pos_per_rad_line = QtWidgets.QLineEdit(self.calibration_tab)
+        self.calib_pos_per_rad_line.setObjectName("calib_pos_per_rad_line")
+        self.horizontalLayout_4.addWidget(self.calib_pos_per_rad_line)
+        self.calib_default_radio = QtWidgets.QRadioButton(self.calibration_tab)
+        self.calib_default_radio.setEnabled(True)
+        self.calib_default_radio.setCheckable(True)
+        self.calib_default_radio.setChecked(True)
+        self.calib_default_radio.setObjectName("calib_default_radio")
+        self.horizontalLayout_4.addWidget(self.calib_default_radio)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_4)
         spacerItem9 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_4.addItem(spacerItem9)
         self.gridLayout_7 = QtWidgets.QGridLayout()
@@ -363,7 +384,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -407,6 +428,9 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "Top wait time"))
         self.pump_button.setText(_translate("MainWindow", "Pump"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.pumpin_tab), _translate("MainWindow", "Pumping"))
+        self.label_6.setText(_translate("MainWindow", "mL_per_rad"))
+        self.label_15.setText(_translate("MainWindow", "pos_per_rad"))
+        self.calib_default_radio.setText(_translate("MainWindow", "Default?"))
         self.label_13.setText(_translate("MainWindow", "Actual volume"))
         self.act_vol_unit.setItemText(0, _translate("MainWindow", "mL"))
         self.label_14.setText(_translate("MainWindow", "Actual rotations"))

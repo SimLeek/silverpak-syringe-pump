@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # vim: set expandtab tabstop=4:
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -10,19 +11,26 @@ import threading
 import xml.etree.ElementTree as ET
 
 class ControllerWindow(QMainWindow):
+    """This class creats a dialogue window for interacting with the silverpak motor when its part of a syringe pump.
+
+    Input - File: syringe_pump_data.xml
+            Com:  silverpak motor (assumes first valid port is motor)
+
+    Output- File: syringe_pump_data.xml
+            Com:  silverpak motor
+
+    """
 
     sig=pyqtSignal()
 
     def __init__(self):
         super(ControllerWindow, self).__init__()
 
-        self.motor = silverpak.Silverpak()
-        #if not self.motor.findAndConnect():
-        #    sys.exit("no silverpak found")
-    
+         #<UI>
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
     
+        #make buttons call functions
         self.ui.calibrate_pump_button.clicked.connect(self.handleCalibInject)
         self.ui.calibrate_button.clicked.connect(self.handleCalib)
         self.ui.inject_button.clicked.connect(self.handleInject)
@@ -30,72 +38,131 @@ class ControllerWindow(QMainWindow):
         self.ui.STOP.clicked.connect(self.stop)
         self.ui.Reset_0_button.clicked.connect(self.reset_0)
         self.ui.Revers_button.clicked.connect(self.reverse)
+        self.ui.RUN.clicked.connect(self.init_motor)
 
+        #</UI>
+
+        #<motor>
         self.parse_xml('syringe_pump_data.xml')
 
-        self.is_rev=False
+        self.motor = silverpak.Silverpak()
+        fail_text= "WARNING: No silverpak found, entering testing mode.\n"
+        try:
+            if not self.motor.findAndConnect():
+                self.ui.console.appendPlainText(fail_text)
+
+            is_rev=self.motor.sendRawCommand("/1e1R")
+            if isinstance(is_rev,str) and is_rev:
+                print("motor rev",is_rev)
+                self.is_rev=bool(int(self.motor.sendRawCommand("/1e1R")))
+            else:
+                print("default rev")
+                self.is_rev=False
+        except TypeError:
+            print("No motor connected. Entering testing mode.")
+
+            self.is_rev=False
+
         self.pos=0
+        #</motor>
 
-        self.vol=None
-        self.rad=None
+        init_text="""To initialize, the motor must spin a few times.
+Please setup your system so this will not ruin whatever you're doing, then press RUN."""
+        self.ui.console.appendPlainText(init_text)
+        
 
-    #get serialized constants that may change between motors
     def parse_xml(self, filename):
-        tree=ET.parse(filename)
-        root=tree.getroot()
-        #if not root.tag=='constants'
-        #    
+        """This function gets serialized data that may change between motors.
 
+        Args:
+            filename (str): name of the xml file to parse
+
+        Raises:
+            ValueError, ParseError
+
+        """
+        
         self.xml_good=True
 
-        for child in root:
-            if child.tag=='mL_per_rad':
-                self.mL_per_rad=float(child.text)
-            elif child.tag=='pos_per_rad':
-                self.pos_per_rad=float(child.text)
+        try:
+            tree=ET.parse(filename)
+            root=tree.getroot()
+            #if not root.tag=='constants'
+            #    
 
-        if self.mL_per_rad==None:
+            #scan doc
+            for child in root:
+                if child.tag=='mL_per_rad':
+                    self.mL_per_rad=float(child.text)
+                elif child.tag=='pos_per_rad':
+                    self.pos_per_rad=float(child.text)
+
+        except FileNotFoundError:
+            pass
+
+        #check data
+        if not hasattr(self,'mL_per_rad'):
             self.mL_per_rad=0.016631691553103064#found experimentally
             self.xml_good=False
-        if self.pos_per_rad==None:
+        if not hasattr(self,'pos_per_rad'):
             self.pos_per_rad=8156.69083345965#found experimentally(on free motor)
             self.xml_good=False
 
+        #fix doc
         if not self.xml_good:
+            self.ui.calib_default_radio.setChecked(True)
             self.write_xml(filename)
+        else:
+            self.ui.calib_default_radio.setChecked(False)
+
+        self.ui.calib_ml_per_rad_line.setText(str(self.mL_per_rad))
+        self.ui.calib_pos_per_rad_line.setText(str(self.pos_per_rad))
     
-    #serialize constants that may change between motors
     def write_xml(self,filename):
+        """This function serializes data that may change between motors.
+
+        Args:
+            filename (str): name of the xml file to parse
+
+        Raises:
+            ValueError, ParseError
+
+        """
+        #make xml
         root=ET.Element('constants')
         mL_per_rad=ET.SubElement(root, 'mL_per_rad')
         mL_per_rad.text=str(self.mL_per_rad)
         pos_per_rad=ET.SubElement(root, 'pos_per_rad')
         pos_per_rad.text=str(self.pos_per_rad)
 
+        #write xml
         tree=ET.ElementTree(root)
         tree.write(filename)
 
+        #update calib data
+        self.ui.calib_default_radio.setChecked(False)
+        self.ui.calib_ml_per_rad_line.setText(str(self.mL_per_rad))
+        self.ui.calib_pos_per_rad_line.setText(str(self.pos_per_rad))
+
     def reset_0(self):
+        """This resets the motor to position 0."""
         self.motor.sendRawCommand("/1z0R")
     
     def reverse(self):
+        """This reverses the direction of the motor and saves the current direction to the motor and the running program."""
         if self.is_rev:
             self.motor.sendRawCommand("/1F0R")
+            self.motor.sendRawCommand("/1s1p0R")#store direction
             print("/1F0R")
             self.is_rev=False
         elif not self.is_rev:
             self.motor.sendRawCommand("/1F1R")
+            self.motor.sendRawCommand("/1s1p1R")
             print("/1F1R")
-            self.is_rev=True
-    
-    def init2(self):
-        init_text="""To initialize, the motor must spin a few times.
-Please setup your system so this will not ruin whatever you're doing, then press RUN."""
-        
-        self.ui.console.appendPlainText(init_text)
-        self.ui.RUN.clicked.connect(self.init3)
+            self.is_rev=True 
 
-    def init3(self):
+    def init_motor(self):
+        """This initializes the motor using the silverpak init command and sets valid velocity and acceleration values."""
         self.ui.console.appendPlainText("...")
         self.motor.sendRawCommand("/1Z10000R")
         while not self.motor.isReady():
@@ -109,6 +176,10 @@ Please setup your system so this will not ruin whatever you're doing, then press
         self.ui.console.appendPlainText("Motor initialized.")
 
     def getPosition(self):
+        """This gets the current position of the motor
+        
+        Note: for some reason, this doesn't seem to work.
+        """
         txt=self.motor.sendRawCommand("/1?0")
         print(str(txt))
         n=[int(s) for s in txt.split('\x00') if s.isdigit()]
@@ -116,9 +187,11 @@ Please setup your system so this will not ruin whatever you're doing, then press
         return int(n[0])
 
     def stop(self):
+        """This stops the motor."""
         self.motor.sendRawCommand("/1TR")
 
     def handlePump(self):
+        """This sets up a loop of inject, pause, draw, pause, and repeat n times to the motor"""
         self.vol=float(self.ui.pumping_vol_num.text())
         no_pumps=float(self.ui.pumping_pumps_num.text())
         pull_time=float(self.ui.pumping_pull_time_num.text())
@@ -185,6 +258,13 @@ Please setup your system so this will not ruin whatever you're doing, then press
         
     
     def handleInject(self):
+        """This tells the motor to inject. Honestly, I think I put in too many units.
+        input:
+            ui.injection_vol_unit (str): unit of injection volume
+            ui.injection_time_unit (str): unit of time length
+            ui.inject_amount_num (str): injection volume
+            ui.inject_time_num (str): injection time length
+            """
         self.vol = float(self.ui.inject_amount_num.text())
         time=float(self.ui.inject_time_num.text())
         if str(self.ui.injection_vol_unit.currentText())=="cc":
@@ -292,7 +372,6 @@ if __name__ == '__main__':
     #sys.stdout = wind
     
     wind.show()
-    wind.init2()
     
     sys.exit(app.exec_())
     
