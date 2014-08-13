@@ -2,8 +2,9 @@
 # vim: set expandtab tabstop=4:
 
 from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
 from syringe_pump_controller_ui import Ui_MainWindow
+from syringe_pump_init_ui import Ui_InitWindow
 import silverpak
 import optparse
 import math
@@ -40,12 +41,17 @@ class ControllerWindow(QMainWindow):
         self.ui.LH_thread_check.stateChanged.connect(self.change_thread)
         self.ui.RUN.clicked.connect(self.init_motor)
 
-        self.ui.no_min_button.setDown(True)
-        self.ui.no_max_button.setDown(True)
-        self.ui.set_min_button.clicked.connect(self.set_min)
-        self.ui.set_max_button.clicked.connect(self.set_max)
-        self.ui.no_min_button.clicked.connect(self.no_min)
-        self.ui.no_max_button.clicked.connect(self.no_max)
+        self.ui.no_min_button.setChecked(True)
+        self.ui.no_max_button.setChecked(True)
+        self.set_max_b=False
+        self.set_min_b=False
+        self.max_pos=2147483647
+        self.no_max()
+        self.no_min()
+        self.ui.set_min_button.stateChanged.connect(self.set_min)
+        self.ui.set_max_button.stateChanged.connect(self.set_max)
+        self.ui.no_min_button.stateChanged.connect(self.no_min)
+        self.ui.no_max_button.stateChanged.connect(self.no_max)
 
         #</UI>
 
@@ -65,7 +71,12 @@ class ControllerWindow(QMainWindow):
             else:
                 print("default rev")
                 self.is_rev=False
-                #todo: next command should go here, but I need to test it.
+            
+            warn = InitWindow(self)
+            warn.exec_()#stop until accepted
+            #warn.setModal(True)
+
+            #todo: next command should go here, but I need to test it.
             #self.motor.sendRawCommand("/1F1R")
 
         except TypeError:
@@ -76,10 +87,16 @@ class ControllerWindow(QMainWindow):
         self.pos=0
         #</motor>
 
-        init_text="""To initialize, the motor must spin a few times.
-Please setup your system so this will not ruin whatever you're doing, then press RUN."""
-        self.ui.console.appendPlainText(init_text)
-        
+        #init_text="""To initialize, the motor must spin a few times.
+#Please setup your system so this will not ruin whatever you're doing, then press# RUN."""
+        # self.ui.console.appendPlainText(init_text)
+    def accept_init(self):
+        self.init_motor()
+
+    def reject_init(self):
+        print("Initialization rejected. Entering testing mode.")
+        self.motor=None
+        self.is_rev=False
 
     def parse_xml(self, filename):
         """This function gets serialized data that may change between motors.
@@ -119,6 +136,8 @@ Please setup your system so this will not ruin whatever you're doing, then press
             self.xml_good=False
 
         #fix doc
+        #todo get radio button to work right. I'm not sure how though, since it
+        # gets reset once the window starts.
         if not self.xml_good:
             self.ui.calib_default_radio.setChecked(True)
             self.write_xml(filename)
@@ -156,27 +175,47 @@ Please setup your system so this will not ruin whatever you're doing, then press
 
     def no_max(self):
         """This sets the motor to the middle of possible values."""
-        self.motor.sendRawCommand("/1z6073741823R")
-        self.ui.no_max_button.setDown(True)
-        self.ui.set_max_button.setDown(False)
+        if self.set_max_b:
+            self.motor.sendRawCommand("/1z6073741823R")
+            self.max_pos=6073741823+self.max_pos
+            self.pos=6073741823+self.pos
+            self.ui.no_max_button.setChecked(True)
+            self.ui.set_max_button.setChecked(False)
+            self.set_max_b=False
+            self.ui.set_min_button.setChecked(self.set_min_b)
+            self.ui.no_min_button.setChecked(not self.set_min_b)
 
     def set_max(self):
         """This sets the current position to the maximum cc."""
-        self.motor.sendRawCommand("/1z0R")
-        self.ui.set_max_button.setDown(True)
-        self.ui.no_max_button.setDown(False)
+        if not self.set_max_b:
+            self.motor.sendRawCommand("/1z0R")
+            self.max_pos=self.max_pos-607374182
+            self.pos=self.pos-607374182
+            self.ui.set_max_button.setChecked(True)
+            self.ui.no_max_button.setChecked(False)
+            self.set_max_b=True
+            self.ui.set_min_button.setChecked(self.set_min_b)
+            self.ui.no_min_button.setChecked(not self.set_min_b)
 
     def set_min(self):
         """This sets the current position to the minimum cc."""
-        self.max_pos=self.pos
-        self.ui.set_min_button.setDown(True)
-        self.ui.no_min_button.setDown(False)
+        if not self.set_min_b:
+            self.max_pos=self.pos
+            self.ui.set_min_button.setChecked(True)
+            self.ui.no_min_button.setChecked(False)
+            self.set_min_b=True
+            self.ui.set_max_button.setChecked(self.set_max_b)
+            self.ui.no_max_button.setChecked(not self.set_max_b)
 
     def no_min(self):
         """This sets the max position to the maximum possible position."""
-        self.max_pos=2147483647#(2^31)-1
-        self.ui.no_min_button.setDown(True)
-        self.ui.set_min_button.setDown(False)
+        if self.set_min_b:
+            self.max_pos=2147483647#(2^31)-1
+            self.ui.no_min_button.setChecked(True)
+            self.ui.set_min_button.setChecked(False)
+            self.set_min_b=False
+            self.ui.set_max_button.setChecked(self.set_max_b)
+            self.ui.no_max_button.setChecked(not self.set_max_b)
     
     def reverse(self):
         """This reverses the direction of the motor and saves the current direction to the motor and the running program."""
@@ -227,6 +266,7 @@ Please setup your system so this will not ruin whatever you're doing, then press
     def stop(self):
         """This stops the motor."""
         self.motor.sendRawCommand("/1TR")
+        self.pos=self.getPosition()
 
     def handlePump(self):
         """This sets up a loop of inject, pause, draw, pause, and repeat n times to the motor"""
@@ -279,9 +319,12 @@ Please setup your system so this will not ruin whatever you're doing, then press
         elif str(self.ui.pumping_bottom_wait_time_unit.currentText())=="hours":
             bottom_wait_time=v*1000*3600
             
-        pos2=self.getPosition()
         self.rad = self.vol/self.mL_per_rad
-        pos1=pos2+self.rad*self.pos_per_rad
+        pos1=self.pos
+        pos2=self.pos-self.rad*self.pos_per_rad
+        if pos2<0:
+            self.ui.console.appendPlainText("warn: could not go past 0 position. Volume will not be as specified!")
+            pos2=0
 
         pull_vel=abs((self.rad*self.pos_per_rad)/pull_time)
         push_vel=abs((self.rad*self.pos_per_rad)/push_time)
@@ -398,6 +441,18 @@ Please setup your system so this will not ruin whatever you're doing, then press
         return text_read
     def flush(self):
         pass
+
+class InitWindow(QDialog):
+    #sig=pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(InitWindow, self).__init__()
+
+        self.ui= Ui_InitWindow()
+        self.ui.setupUi(self)
+        self.ui.buttonBox.accepted.connect(parent.accept_init)
+        self.ui.buttonBox.rejected.connect(parent.reject_init)
+
 
 if __name__ == '__main__':
     import sys
