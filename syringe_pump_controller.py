@@ -27,18 +27,52 @@ class ControllerWindow(QMainWindow):
     def __init__(self):
         super(ControllerWindow, self).__init__()
 
-         #<UI>
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        
+        self.pump_char='1'
+
+        #<motor>
+        self.parse_xml('syringe_pump_data.xml')
+
+        self.motor = silverpak.Silverpak()
+        fail_text= "WARNING: No silverpak found, entering testing mode.\n"
+        try:
+            if not self.motor.findAndConnect():
+                self.ui.console.appendPlainText(fail_text)
+
+            is_rev=self.motor.sendRawCommand("/"+self.pump_char+"e1R")
+            if isinstance(is_rev,str) and is_rev:
+                print("motor rev",is_rev)
+                self.is_rev=bool(int(self.motor.sendRawCommand("/"+self.pump_char+"e1R")))
+            else:
+                print("default rev")
+                self.is_rev=False
+            
+            warn = InitWindow(self)
+            warn.exec_()#stop until accepted
+            #warn.setModal(True)
+
+            #todo: next command should go here, but I need to test it.
+            #self.motor.sendRawCommand("/"+self.pump_char+"F1R")
+
+        except TypeError:
+            print("No motor connected. Entering testing mode.")
+
+            self.is_rev=False
+
+        self.pos=0
+        #</motor>
+
+         #<UI>
+        
     
         #make buttons call functions
         self.ui.calibrate_pump_button.clicked.connect(self.handleCalibInject)
         self.ui.calibrate_button.clicked.connect(self.handleCalib)
         self.ui.inject_button.clicked.connect(self.handleInject)
         self.ui.pump_button.clicked.connect(self.handlePump)
-        self.ui.STOP.clicked.connect(self.stop)        
-        self.ui.reverse_check.stateChanged.connect(self.reverse)
-        self.ui.LH_thread_check.stateChanged.connect(self.change_thread)
+        self.ui.STOP.clicked.connect(self.stop)         
         self.ui.RUN.clicked.connect(self.init_motor)
 
         self.ui.no_min_button.setChecked(True)
@@ -53,43 +87,53 @@ class ControllerWindow(QMainWindow):
         self.ui.no_min_button.stateChanged.connect(self.no_min)
         self.ui.no_max_button.stateChanged.connect(self.no_max)
 
+        self.ui.pump_select.currentIndexChanged[str].connect(self.select_pump)
+        
         #</UI>
-
-        #<motor>
-        self.parse_xml('syringe_pump_data.xml')
-
-        self.motor = silverpak.Silverpak()
-        fail_text= "WARNING: No silverpak found, entering testing mode.\n"
-        try:
-            if not self.motor.findAndConnect():
-                self.ui.console.appendPlainText(fail_text)
-
-            is_rev=self.motor.sendRawCommand("/1e1R")
-            if isinstance(is_rev,str) and is_rev:
-                print("motor rev",is_rev)
-                self.is_rev=bool(int(self.motor.sendRawCommand("/1e1R")))
-            else:
-                print("default rev")
-                self.is_rev=False
-            
-            warn = InitWindow(self)
-            warn.exec_()#stop until accepted
-            #warn.setModal(True)
-
-            #todo: next command should go here, but I need to test it.
-            #self.motor.sendRawCommand("/1F1R")
-
-        except TypeError:
-            print("No motor connected. Entering testing mode.")
-
-            self.is_rev=False
-
-        self.pos=0
-        #</motor>
 
         #init_text="""To initialize, the motor must spin a few times.
 #Please setup your system so this will not ruin whatever you're doing, then press# RUN."""
         # self.ui.console.appendPlainText(init_text)
+
+    def select_pump(self, text):
+        print(text)
+        if text=='Pump 0':
+            self.pump_char='@'
+        elif text=='Pump 1':
+            self.pump_char='1'
+        elif text=='Pump 2':
+            self.pump_char='2'
+        elif text=='Pump 3':
+            self.pump_char='3'
+        elif text=='Pump 4':
+            self.pump_char='4'
+        elif text=='Pump 5':
+            self.pump_char='5'
+        elif text=='Pump 6':
+            self.pump_char='6'
+        elif text=='Pump 7':
+            self.pump_char='7'
+        elif text=='Pump 8':
+            self.pump_char='8'
+        elif text=='Pump 9':
+            self.pump_char='9'
+        elif text=='Pump A':
+            self.pump_char=':'
+        elif text=='Pump B':
+            self.pump_char=';'
+        elif text=='Pump C':
+            self.pump_char='<'
+        elif text=='Pump D':
+            self.pump_char='='
+        elif text=='Pump E':
+            self.pump_char='>'
+        elif text=='Pump F':
+            self.pump_char='?'
+        print(self.pump_char)
+
+        self.ui.console.appendPlainText("Motor number changed. If the motor did not turn at program startup, please re-initialize.")
+
+
     def accept_init(self):
         self.init_motor()
 
@@ -176,9 +220,9 @@ class ControllerWindow(QMainWindow):
     def no_max(self):
         """This sets the motor to the middle of possible values."""
         if self.set_max_b:
-            self.motor.sendRawCommand("/1z6073741823R")
-            self.max_pos=6073741823+self.max_pos
-            self.pos=6073741823+self.pos
+            self.pos=1073741824+self.pos
+            self.motor.sendRawCommand("/"+self.pump_char+"z"+str(self.pos)+"R")
+            self.max_pos=1073741824+self.max_pos
             self.ui.no_max_button.setChecked(True)
             self.ui.set_max_button.setChecked(False)
             self.set_max_b=False
@@ -188,9 +232,9 @@ class ControllerWindow(QMainWindow):
     def set_max(self):
         """This sets the current position to the maximum cc."""
         if not self.set_max_b:
-            self.motor.sendRawCommand("/1z0R")
-            self.max_pos=self.max_pos-607374182
-            self.pos=self.pos-607374182
+            self.max_pos=abs(self.max_pos-self.pos)
+            self.pos=0
+            self.motor.sendRawCommand("/"+self.pump_char+"z0R")
             self.ui.set_max_button.setChecked(True)
             self.ui.no_max_button.setChecked(False)
             self.set_max_b=True
@@ -200,7 +244,7 @@ class ControllerWindow(QMainWindow):
     def set_min(self):
         """This sets the current position to the minimum cc."""
         if not self.set_min_b:
-            self.max_pos=self.pos
+            self.max_pos=self.getPosition()
             self.ui.set_min_button.setChecked(True)
             self.ui.no_min_button.setChecked(False)
             self.set_min_b=True
@@ -217,37 +261,37 @@ class ControllerWindow(QMainWindow):
             self.ui.set_max_button.setChecked(self.set_max_b)
             self.ui.no_max_button.setChecked(not self.set_max_b)
     
-    def reverse(self):
-        """This reverses the direction of the motor and saves the current direction to the motor and the running program."""
-        if (self.is_rev ^ self.ui.LH_thread_check.isChecked()):
-            self.motor.sendRawCommand("/1F1R")
-            self.motor.sendRawCommand("/1s1p1R")#store direction
-            print("/1F0R")
-            self.is_rev=not self.is_rev
-        else:
-            self.motor.sendRawCommand("/1F0R")
-            self.motor.sendRawCommand("/1s1p0R")
-            print("/1F1R")
-            self.is_rev=not self.is_rev 
+#    def reverse(self):
+#        """This reverses the direction of the motor and saves the current direction to the motor and the running program."""
+#        if (self.is_rev ^ self.ui.LH_thread_check.isChecked()):
+#            self.motor.sendRawCommand("/"+self.pump_char+"F1R")
+#            self.motor.sendRawCommand("/"+self.pump_char+"s1p1R")#store direction
+#            print("/"+self.pump_char+"F0R")
+#            self.is_rev=not self.is_rev
+#        else:
+#            self.motor.sendRawCommand("/"+self.pump_char+"F0R")
+#            self.motor.sendRawCommand("/"+self.pump_char+"s1p0R")
+#            print("/"+self.pump_char+"F1R")
+#            self.is_rev=not self.is_rev 
 
         #double check check
         #self.ui.reverse_check.setChecked(self.is_rev ^ self.ui.LH_thread_check.isChecked())
         #no, that actually leads to an infinite loop
 
-    def change_thread(self):
-        """This changes the text on the reverse button without changing the direction of the motor."""
-        self.ui.reverse_check.setChecked(not self.ui.reverse_check.isChecked())
+#    def change_thread(self):
+#        """This changes the text on the reverse button without changing the direction of the motor."""
+#        self.ui.reverse_check.setChecked(not self.ui.reverse_check.isChecked())#
 
     def init_motor(self):
         """This initializes the motor using the silverpak init command and sets valid velocity and acceleration values."""
         self.ui.console.appendPlainText("...")
-        self.motor.sendRawCommand("/1Z10000R")
+        self.motor.sendRawCommand("/"+self.pump_char+"Z10000R")
         while not self.motor.isReady():
             pass
-        self.motor.sendRawCommand("/1L5000R")#needed for motor to actually move
+        self.motor.sendRawCommand("/"+self.pump_char+"L5000R")#needed for motor to actually move
         while not self.motor.isReady():
             pass
-        self.motor.sendRawCommand("/1V200000R")
+        self.motor.sendRawCommand("/"+self.pump_char+"V200000R")
         while not self.motor.isReady():
             pass
         self.ui.console.appendPlainText("Motor initialized.")
@@ -257,7 +301,7 @@ class ControllerWindow(QMainWindow):
         
         Note: for some reason, this doesn't seem to work.
         """
-        txt=self.motor.sendRawCommand("/1?0")
+        txt=self.motor.sendRawCommand("/"+self.pump_char+"?0")
         print(str(txt))
         n=[int(s) for s in txt.split('\x00') if s.isdigit()]
         print(n)
@@ -265,7 +309,7 @@ class ControllerWindow(QMainWindow):
 
     def stop(self):
         """This stops the motor."""
-        self.motor.sendRawCommand("/1TR")
+        self.motor.sendRawCommand("/"+self.pump_char+"TR")
         self.pos=self.getPosition()
 
     def handlePump(self):
@@ -326,6 +370,10 @@ class ControllerWindow(QMainWindow):
             self.ui.console.appendPlainText("warn: could not go past 0 position. Volume will not be as specified!")
             pos2=0
 
+        #Impossible:
+        #if pos1>self.max_pos:
+        #    self.ui.console.appendPlainTest("Warn: could not go past max position. Volume will not be as specififed!")
+
         pull_vel=abs((self.rad*self.pos_per_rad)/pull_time)
         push_vel=abs((self.rad*self.pos_per_rad)/push_time)
 
@@ -333,7 +381,7 @@ class ControllerWindow(QMainWindow):
             self.ui.console.appendPlainText("err: motor is not accurate at high speeds.")
             return
 
-        exe="/1gV"+str(int(pull_vel))+"A"+str(int(pos2))+"M"+str(int(top_wait_time))+"V"+str(int(push_vel))+"A"+str(int(pos1))+"M"+str(int(bottom_wait_time))+"G"+str(int(no_pumps))+"R"
+        exe="/"+self.pump_char+"gV"+str(int(pull_vel))+"A"+str(int(pos2))+"M"+str(int(top_wait_time))+"V"+str(int(push_vel))+"A"+str(int(pos1))+"M"+str(int(bottom_wait_time))+"G"+str(int(no_pumps))+"R"
         print(exe)
         self.motor.sendRawCommand(exe)
         
@@ -374,14 +422,17 @@ class ControllerWindow(QMainWindow):
         if vel>732143:
             self.ui.console.appendPlainText("err: motor is not accurate at high speeds.")
             return
-        self.motor.sendRawCommand("/1V"+str(int(vel))+"R")
+        self.motor.sendRawCommand("/"+self.pump_char+"V"+str(int(vel))+"R")
         self.pos=self.getPosition()+self.rad*self.pos_per_rad
         if self.pos <0:
             self.ui.console.appendPlainText("warn: could not go past 0 position.")
             self.pos=0
+        if self.pos>self.max_pos:
+            self.ui.console.appendPlainText("Warn: could not go past max position. Will not inject correct volume!")
+            self.pos=self.max_pos
         print(self.pos)
-        self.motor.sendRawCommand("/1A"+str(int(self.pos))+"R")
-        print("/1A"+str(int(self.pos))+"R")
+        self.motor.sendRawCommand("/"+self.pump_char+"A"+str(int(self.pos))+"R")
+        print("/"+self.pump_char+"A"+str(int(self.pos))+"R")
 
     def handleCalibInject(self):
         if self.ui.cal_by_vol_radio.isChecked():
@@ -401,11 +452,14 @@ class ControllerWindow(QMainWindow):
         print(self.motor.position(),self.rad*self.pos_per_rad)
         self.pos=self.getPosition()+self.rad*self.pos_per_rad
         if self.pos <0:
-            self.ui.console.appendPlainText("warn: could not go past 0 position.")
+            self.ui.console.appendPlainText("warn: could not go past 0 position.  Volume will not be correct! Do not use to recalibrate!")
             self.pos=0
+        elif self.pos>self.max_pos:
+            self.ui.console.appendPlainText("Warn: could not go past max position. Volume will not be correct! Do not use to recalibrate!")
+            self.pos=self.max_pos
         print(self.pos)
-        self.motor.sendRawCommand("/1A"+str(int(self.pos))+"R")
-        print("/1A"+str(int(self.pos))+"R")
+        self.motor.sendRawCommand("/"+self.pump_char+"A"+str(int(self.pos))+"R")
+        print("/"+self.pump_char+"A"+str(int(self.pos))+"R")
 
     def handleCalib(self):
         if self.ui.cal_by_vol_radio.isChecked():

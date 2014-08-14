@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>555</width>
-    <height>426</height>
+    <width>544</width>
+    <height>403</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="tabsClosable">
        <bool>false</bool>
@@ -244,13 +244,33 @@
          </spacer>
         </item>
         <item>
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>Note: stroke volume indicates both volume drawn and injected.</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string> e.g. 3mL will draw 3mL, then inject 3mL, then repeat.</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_4">
             <item row="0" column="0">
              <widget class="QLabel" name="label_5">
               <property name="text">
-               <string>volume</string>
+               <string>stroke volume</string>
               </property>
              </widget>
             </item>
@@ -745,34 +765,87 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_7">
            <item>
-            <widget class="QRadioButton" name="radioButton_2">
-             <property name="text">
-              <string>Pump 1</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioButton_3">
-             <property name="text">
-              <string>Pump 2</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioButton_4">
-             <property name="text">
-              <string>Pump 3</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioButton">
-             <property name="text">
-              <string>Pump 4</string>
-             </property>
+            <widget class="QComboBox" name="pump_select">
+             <item>
+              <property name="text">
+               <string>Pump 1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 3</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 5</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 6</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 7</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 9</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump A</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump B</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump C</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump D</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump E</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump F</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pump 0</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
@@ -861,24 +934,6 @@
                 </widget>
                </item>
               </layout>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <item>
-              <widget class="QCheckBox" name="LH_thread_check">
-               <property name="text">
-                <string>LH thread?</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="reverse_check">
-               <property name="text">
-                <string>Reverse</string>
-               </property>
-              </widget>
              </item>
             </layout>
            </item>
