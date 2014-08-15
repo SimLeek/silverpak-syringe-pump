@@ -12,62 +12,46 @@ import threading
 import xml.etree.ElementTree as ET
 
 class ControllerWindow(QMainWindow):
-    """This class creats a dialogue window for interacting with the silverpak motor when its part of a syringe pump.
+    """This class creats a dialogue window for interacting with the silverpak motor when it's part of a syringe pump. 
+    
+    Note: 
+        Some information is saved to and read from the syringe_pump_data.xml file. Other higher priority information is proposed to be saved to and loaded from the syringe pump itself, however, that may require modifying silverpak.py.
 
-    Input - File: syringe_pump_data.xml
-            Com:  silverpak motor (assumes first valid port is motor)
-
-    Output- File: syringe_pump_data.xml
-            Com:  silverpak motor
-
+    Raises:
+        ValueError: Everything raises this if you don't type numbers.
+    
     """
 
+    #--------------#
+    #INIT FUNCTIONS#
+    #--------------#
+
     sig=pyqtSignal()
-
     def __init__(self):
+        """Initializes the class, initializes the motor, and connects all the buttons."""
         super(ControllerWindow, self).__init__()
-
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        
-        self.pump_char='1'
 
-        #<motor>
+        #MOTOR INIT SECTION
+        self.pump_char='1' #output to default pump
         self.parse_xml('syringe_pump_data.xml')
 
-        self.motor = silverpak.Silverpak()
+        self.motor = silverpak.Silverpak() #motor class with useful commands
         fail_text= "WARNING: No silverpak found, entering testing mode.\n"
         try:
-            if not self.motor.findAndConnect():
+            if not self.motor.findAndConnect(): #no motor found
                 self.ui.console.appendPlainText(fail_text)
-
-            is_rev=self.motor.sendRawCommand("/"+self.pump_char+"e1R")
-            if isinstance(is_rev,str) and is_rev:
-                print("motor rev",is_rev)
-                self.is_rev=bool(int(self.motor.sendRawCommand("/"+self.pump_char+"e1R")))
-            else:
-                print("default rev")
-                self.is_rev=False
             
-            warn = InitWindow(self)
+            warn = InitWindow(self) #warn users that motor turns on init
             warn.exec_()#stop until accepted
-            #warn.setModal(True)
 
-            #todo: next command should go here, but I need to test it.
-            #self.motor.sendRawCommand("/"+self.pump_char+"F1R")
+        except TypeError: #also no motor found
+            self.ui.console.appendPlainText(fail_text)
 
-        except TypeError:
-            print("No motor connected. Entering testing mode.")
+        self.motor_position=0 #goes from 0 - (2^31)-1
 
-            self.is_rev=False
-
-        self.pos=0
-        #</motor>
-
-         #<UI>
-        
-    
-        #make buttons call functions
+        #BUTTON INIT SECTION
         self.ui.calibrate_pump_button.clicked.connect(self.handleCalibInject)
         self.ui.calibrate_button.clicked.connect(self.handleCalib)
         self.ui.inject_button.clicked.connect(self.handleInject)
@@ -77,26 +61,151 @@ class ControllerWindow(QMainWindow):
 
         self.ui.no_min_button.setChecked(True)
         self.ui.no_max_button.setChecked(True)
-        self.set_max_b=False
-        self.set_min_b=False
-        self.max_pos=2147483647
-        self.no_max()
-        self.no_min()
+        self.is_max_set=True
+        self.is_min_set=True
+        self.max_pos=0
+        try:
+            self.no_max()
+            self.no_min()
+        except AttributeError:
+            #in case of testing mode, motor errors need to be ignored
+            pass
         self.ui.set_min_button.stateChanged.connect(self.set_min)
         self.ui.set_max_button.stateChanged.connect(self.set_max)
         self.ui.no_min_button.stateChanged.connect(self.no_min)
         self.ui.no_max_button.stateChanged.connect(self.no_max)
 
         self.ui.pump_select.currentIndexChanged[str].connect(self.select_pump)
-        
-        #</UI>
 
-        #init_text="""To initialize, the motor must spin a few times.
-#Please setup your system so this will not ruin whatever you're doing, then press# RUN."""
-        # self.ui.console.appendPlainText(init_text)
+    def init_motor(self):
+        """Initializes the motor using the silverpak init command and sets valid velocity and acceleration values."""
+        self.ui.console.appendPlainText("...")
+        #default init command. Todo: allow user to set rotations allowed.
+        self.motor.sendRawCommand("/"+self.pump_char+"Z10000R")
+        while not self.motor.isReady():
+            pass
+        #Acceleration. Needed for motor to actually move.
+        self.motor.sendRawCommand("/"+self.pump_char+"L5000R")
+        while not self.motor.isReady():
+            pass
+        #Velocity. Needs to be set low for motor to move without slipping.
+        self.motor.sendRawCommand("/"+self.pump_char+"V200000R")
+        while not self.motor.isReady():
+            pass
+        self.ui.console.appendPlainText("Motor initialized.")
+
+    def accept_init(self):
+        """Acts as a QT slot for the InitWindow class. User selected init motor."""
+        self.init_motor()
+
+    def reject_init(self):
+        """Acts as a QT slot for the InitWindow class. Testing mode means testing only gui."""
+        self.ui.console.appendPlainText("Initialization rejected. Entering testing mode.")
+        self.motor=None
+
+    def pass_init(self):
+        """Acts as a QT slot for the InitWindow class. Skips motor initialization when initializing window"""
+        pass
+
+#    def read(self, text):
+#        """Reads from the UI console. Can replace the main console. I'm not sure if this works, but currently there is no need for it."""
+#
+#        #self.ui.plainTextEdit.insertPlainText(text)
+#        text_read = ""
+#        while self.ui.plainTextEdit.toPlainText[-1] != str('\0'):
+#            text_read.append(self.ui.plainTextEdit.toPlainText[-1])
+#        return text_read
+#
+#    def flush(self):
+#        """Flushes the UI window console."""
+#        pass
+
+    #------------------#
+    #DATA SERIALIZATION#
+    #------------------#
+
+    def parse_xml(self, filename):
+        """Gets serialized data that may change between motors.
+
+        Args:
+            filename (str): name of the xml file to parse
+
+        Raises:
+            ValueError, ParseError
+
+        """
+        
+        self.xml_good=True
+
+        #scan doc
+        try:
+            tree=ET.parse(filename)
+            root=tree.getroot()
+
+            for child in root:
+                if child.tag=='mL_per_rad':
+                    self.mL_per_rad=float(child.text)
+                elif child.tag=='pos_per_rad':
+                    self.motor_position_per_rad=float(child.text)
+
+        except FileNotFoundError:
+            pass
+
+        #check data
+        if not hasattr(self,'mL_per_rad'):
+            self.mL_per_rad=0.016631691553103064#found experimentally
+            self.xml_good=False
+        if not hasattr(self,'pos_per_rad'):
+            self.motor_position_per_rad=8156.69083345965#found experimentally(on free motor)
+            self.xml_good=False
+
+        #fix doc
+        if not self.xml_good:
+            self.ui.calib_default_radio.setChecked(True)
+            self.write_xml(filename)
+        else:
+            self.ui.calib_default_radio.setChecked(False)
+
+        self.ui.calib_ml_per_rad_line.setText(str(self.mL_per_rad))
+        self.ui.calib_pos_per_rad_line.setText(str(self.motor_position_per_rad))
+    
+    def write_xml(self,filename):
+        """Serializes data that may change between motors.
+
+        Args:
+            filename (str): name of the xml file to parse
+
+        Raises:
+            ValueError, ParseError
+
+        """
+        #make xml
+        root=ET.Element('constants')
+        mL_per_rad=ET.SubElement(root, 'mL_per_rad')
+        mL_per_rad.text=str(self.mL_per_rad)
+        pos_per_rad=ET.SubElement(root, 'pos_per_rad')
+        pos_per_rad.text=str(self.motor_position_per_rad)
+
+        #write xml
+        tree=ET.ElementTree(root)
+        tree.write(filename)
+
+        #update calibration display data
+        self.ui.calib_default_radio.setChecked(False)
+        self.ui.calib_ml_per_rad_line.setText(str(self.mL_per_rad))
+        self.ui.calib_pos_per_rad_line.setText(str(self.motor_position_per_rad))
+
+    #--------------------#
+    #CHANGE PUMP SETTINGS#
+    #--------------------#
 
     def select_pump(self, text):
-        print(text)
+        """Selects which pump the class will be outputting to.
+        
+        Args:
+            text: text from the dropdown menu with all possible motor names.
+
+        """
         if text=='Pump 0':
             self.pump_char='@'
         elif text=='Pump 1':
@@ -133,173 +242,62 @@ class ControllerWindow(QMainWindow):
 
         self.ui.console.appendPlainText("Motor number changed. If the motor did not turn at program startup, please re-initialize.")
 
-
-    def accept_init(self):
-        self.init_motor()
-
-    def reject_init(self):
-        print("Initialization rejected. Entering testing mode.")
-        self.motor=None
-        self.is_rev=False
-
-    def parse_xml(self, filename):
-        """This function gets serialized data that may change between motors.
-
-        Args:
-            filename (str): name of the xml file to parse
-
-        Raises:
-            ValueError, ParseError
-
-        """
-        
-        self.xml_good=True
-
-        try:
-            tree=ET.parse(filename)
-            root=tree.getroot()
-            #if not root.tag=='constants'
-            #    
-
-            #scan doc
-            for child in root:
-                if child.tag=='mL_per_rad':
-                    self.mL_per_rad=float(child.text)
-                elif child.tag=='pos_per_rad':
-                    self.pos_per_rad=float(child.text)
-
-        except FileNotFoundError:
-            pass
-
-        #check data
-        if not hasattr(self,'mL_per_rad'):
-            self.mL_per_rad=0.016631691553103064#found experimentally
-            self.xml_good=False
-        if not hasattr(self,'pos_per_rad'):
-            self.pos_per_rad=8156.69083345965#found experimentally(on free motor)
-            self.xml_good=False
-
-        #fix doc
-        #todo get radio button to work right. I'm not sure how though, since it
-        # gets reset once the window starts.
-        if not self.xml_good:
-            self.ui.calib_default_radio.setChecked(True)
-            self.write_xml(filename)
-        else:
-            self.ui.calib_default_radio.setChecked(False)
-
-        self.ui.calib_ml_per_rad_line.setText(str(self.mL_per_rad))
-        self.ui.calib_pos_per_rad_line.setText(str(self.pos_per_rad))
-    
-    def write_xml(self,filename):
-        """This function serializes data that may change between motors.
-
-        Args:
-            filename (str): name of the xml file to parse
-
-        Raises:
-            ValueError, ParseError
-
-        """
-        #make xml
-        root=ET.Element('constants')
-        mL_per_rad=ET.SubElement(root, 'mL_per_rad')
-        mL_per_rad.text=str(self.mL_per_rad)
-        pos_per_rad=ET.SubElement(root, 'pos_per_rad')
-        pos_per_rad.text=str(self.pos_per_rad)
-
-        #write xml
-        tree=ET.ElementTree(root)
-        tree.write(filename)
-
-        #update calib data
-        self.ui.calib_default_radio.setChecked(False)
-        self.ui.calib_ml_per_rad_line.setText(str(self.mL_per_rad))
-        self.ui.calib_pos_per_rad_line.setText(str(self.pos_per_rad))
-
     def no_max(self):
-        """This sets the motor to the middle of possible values."""
-        if self.set_max_b:
-            self.pos=1073741824+self.pos
-            self.motor.sendRawCommand("/"+self.pump_char+"z"+str(self.pos)+"R")
+        """Sets the motor value to somewhere near the middle of possible motor positions."""
+        if self.is_max_set:
+            self.motor_position=1073741824+self.motor_position
+            self.motor.sendRawCommand("/"+self.pump_char+"z"+str(self.motor_position)+"R")
             self.max_pos=1073741824+self.max_pos
             self.ui.no_max_button.setChecked(True)
             self.ui.set_max_button.setChecked(False)
-            self.set_max_b=False
-            self.ui.set_min_button.setChecked(self.set_min_b)
-            self.ui.no_min_button.setChecked(not self.set_min_b)
+            self.is_max_set=False
+            self.ui.set_min_button.setChecked(self.is_min_set)
+            self.ui.no_min_button.setChecked(not self.is_min_set)
 
     def set_max(self):
-        """This sets the current position to the maximum cc."""
-        if not self.set_max_b:
-            self.max_pos=abs(self.max_pos-self.pos)
-            self.pos=0
+        """Sets the current position to the maximum cc."""
+        if not self.is_max_set:
+            self.max_pos=abs(self.max_pos-self.motor_position)
+            self.motor_position=0
             self.motor.sendRawCommand("/"+self.pump_char+"z0R")
             self.ui.set_max_button.setChecked(True)
             self.ui.no_max_button.setChecked(False)
-            self.set_max_b=True
-            self.ui.set_min_button.setChecked(self.set_min_b)
-            self.ui.no_min_button.setChecked(not self.set_min_b)
+            self.is_max_set=True
+            self.ui.set_min_button.setChecked(self.is_min_set)
+            self.ui.no_min_button.setChecked(not self.is_min_set)
 
     def set_min(self):
-        """This sets the current position to the minimum cc."""
-        if not self.set_min_b:
+        """Sets the current position to the minimum cc."""
+        if not self.is_min_set:
             self.max_pos=self.getPosition()
             self.ui.set_min_button.setChecked(True)
             self.ui.no_min_button.setChecked(False)
-            self.set_min_b=True
-            self.ui.set_max_button.setChecked(self.set_max_b)
-            self.ui.no_max_button.setChecked(not self.set_max_b)
+            self.is_min_set=True
+            self.ui.set_max_button.setChecked(self.is_max_set)
+            self.ui.no_max_button.setChecked(not self.is_max_set)
 
     def no_min(self):
-        """This sets the max position to the maximum possible position."""
-        if self.set_min_b:
+        """Sets the max position to a high value that you'll never reach."""
+        if self.is_min_set:
             self.max_pos=2147483647#(2^31)-1
             self.ui.no_min_button.setChecked(True)
             self.ui.set_min_button.setChecked(False)
-            self.set_min_b=False
-            self.ui.set_max_button.setChecked(self.set_max_b)
-            self.ui.no_max_button.setChecked(not self.set_max_b)
-    
-#    def reverse(self):
-#        """This reverses the direction of the motor and saves the current direction to the motor and the running program."""
-#        if (self.is_rev ^ self.ui.LH_thread_check.isChecked()):
-#            self.motor.sendRawCommand("/"+self.pump_char+"F1R")
-#            self.motor.sendRawCommand("/"+self.pump_char+"s1p1R")#store direction
-#            print("/"+self.pump_char+"F0R")
-#            self.is_rev=not self.is_rev
-#        else:
-#            self.motor.sendRawCommand("/"+self.pump_char+"F0R")
-#            self.motor.sendRawCommand("/"+self.pump_char+"s1p0R")
-#            print("/"+self.pump_char+"F1R")
-#            self.is_rev=not self.is_rev 
-
-        #double check check
-        #self.ui.reverse_check.setChecked(self.is_rev ^ self.ui.LH_thread_check.isChecked())
-        #no, that actually leads to an infinite loop
-
-#    def change_thread(self):
-#        """This changes the text on the reverse button without changing the direction of the motor."""
-#        self.ui.reverse_check.setChecked(not self.ui.reverse_check.isChecked())#
-
-    def init_motor(self):
-        """This initializes the motor using the silverpak init command and sets valid velocity and acceleration values."""
-        self.ui.console.appendPlainText("...")
-        self.motor.sendRawCommand("/"+self.pump_char+"Z10000R")
-        while not self.motor.isReady():
-            pass
-        self.motor.sendRawCommand("/"+self.pump_char+"L5000R")#needed for motor to actually move
-        while not self.motor.isReady():
-            pass
-        self.motor.sendRawCommand("/"+self.pump_char+"V200000R")
-        while not self.motor.isReady():
-            pass
-        self.ui.console.appendPlainText("Motor initialized.")
+            self.is_min_set=False
+            self.ui.set_max_button.setChecked(self.is_max_set)
+            self.ui.no_max_button.setChecked(not self.is_max_set)
+   
+   #-------------------------#
+   #IMPORTANT MOTOR FUNCTIONS#
+   #-------------------------#
 
     def getPosition(self):
-        """This gets the current position of the motor
+        """Gets the current position of the motor
         
-        Note: for some reason, this doesn't seem to work.
+        Returns:
+            the position of the motor in steps from 0.
+        Raises:
+            AttributeError: if motor is not responding correctly
+
         """
         txt=self.motor.sendRawCommand("/"+self.pump_char+"?0")
         print(str(txt))
@@ -308,23 +306,30 @@ class ControllerWindow(QMainWindow):
         return int(n[0])
 
     def stop(self):
-        """This stops the motor."""
+        """Stops the motor."""
         self.motor.sendRawCommand("/"+self.pump_char+"TR")
-        self.pos=self.getPosition()
+        self.motor_position=self.getPosition()
+
+    #--------------#
+    #MAIN FUNCTIONS#
+    #--------------#
 
     def handlePump(self):
-        """This sets up a loop of inject, pause, draw, pause, and repeat n times to the motor"""
+        """Sets up a loop of inject, pause, draw, pause, and repeat n times to the motor"""
+        #get info
         self.vol=float(self.ui.pumping_vol_num.text())
         no_pumps=float(self.ui.pumping_pumps_num.text())
         pull_time=float(self.ui.pumping_pull_time_num.text())
         top_wait_time=float(self.ui.pumping_top_wait_time_num.text())
         push_time=float(self.ui.pumping_push_time_num.text())
         bottom_wait_time=float(self.ui.pumping_bottom_wait_time_num.text())
-
+        
+        #check info
         if self.vol<0 or no_pumps<0 or pull_time<0 or top_wait_time<0 or push_time<0 or bottom_wait_time<0:
             self.ui.console.appendPlainText("err: negative values not allowed.")
             return
 
+        #convert info
         if str(self.ui.pumping_vol_unit.currentText())=="mL":
             pass
 
@@ -364,36 +369,35 @@ class ControllerWindow(QMainWindow):
             bottom_wait_time=v*1000*3600
             
         self.rad = self.vol/self.mL_per_rad
-        pos1=self.pos
-        pos2=self.pos-self.rad*self.pos_per_rad
+        pos1=self.motor_position
+        pos2=self.motor_position-self.rad*self.motor_position_per_rad
+
+        #check info again...
         if pos2<0:
             self.ui.console.appendPlainText("warn: could not go past 0 position. Volume will not be as specified!")
             pos2=0
 
-        #Impossible:
+        #Impossible. Pumping cycle always starts by drawing.
         #if pos1>self.max_pos:
         #    self.ui.console.appendPlainTest("Warn: could not go past max position. Volume will not be as specififed!")
 
-        pull_vel=abs((self.rad*self.pos_per_rad)/pull_time)
-        push_vel=abs((self.rad*self.pos_per_rad)/push_time)
+        pull_vel=abs((self.rad*self.motor_position_per_rad)/pull_time)
+        push_vel=abs((self.rad*self.motor_position_per_rad)/push_time)
 
         if pull_vel>732143 or push_vel>732143:
             self.ui.console.appendPlainText("err: motor is not accurate at high speeds.")
             return
 
+        #Send!
         exe="/"+self.pump_char+"gV"+str(int(pull_vel))+"A"+str(int(pos2))+"M"+str(int(top_wait_time))+"V"+str(int(push_vel))+"A"+str(int(pos1))+"M"+str(int(bottom_wait_time))+"G"+str(int(no_pumps))+"R"
         print(exe)
         self.motor.sendRawCommand(exe)
         
-    
     def handleInject(self):
-        """This tells the motor to inject. Honestly, I think I put in too many units.
-        input:
-            ui.injection_vol_unit (str): unit of injection volume
-            ui.injection_time_unit (str): unit of time length
-            ui.inject_amount_num (str): injection volume
-            ui.inject_time_num (str): injection time length
-            """
+        """Tells the motor to inject."""
+
+        #get and convert user input
+        #Honestly, I think I added too many units
         self.vol = float(self.ui.inject_amount_num.text())
         time=float(self.ui.inject_time_num.text())
         if str(self.ui.injection_vol_unit.currentText())=="cc":
@@ -417,25 +421,32 @@ class ControllerWindow(QMainWindow):
         elif str(self.ui.injection_time_unit.currentText())=="minutes":
             time=time*3600
         self.rad = self.vol/self.mL_per_rad
-        vel=(abs(self.rad*self.pos_per_rad)/time)
-        print(vel)
+        vel=(abs(self.rad*self.motor_position_per_rad)/time)
+
+        #check user input
         if vel>732143:
             self.ui.console.appendPlainText("err: motor is not accurate at high speeds.")
             return
+        
+        #set velocity
         self.motor.sendRawCommand("/"+self.pump_char+"V"+str(int(vel))+"R")
-        self.pos=self.getPosition()+self.rad*self.pos_per_rad
-        if self.pos <0:
+        self.motor_position=self.getPosition()+self.rad*self.motor_position_per_rad
+        #more checking...
+        if self.motor_position <0:
             self.ui.console.appendPlainText("warn: could not go past 0 position.")
-            self.pos=0
-        if self.pos>self.max_pos:
+            self.motor_position=0
+        if self.motor_position>self.max_pos:
             self.ui.console.appendPlainText("Warn: could not go past max position. Will not inject correct volume!")
-            self.pos=self.max_pos
-        print(self.pos)
-        self.motor.sendRawCommand("/"+self.pump_char+"A"+str(int(self.pos))+"R")
-        print("/"+self.pump_char+"A"+str(int(self.pos))+"R")
+            self.motor_position=self.max_pos
+
+        #Inject!
+        self.motor.sendRawCommand("/"+self.pump_char+"A"+str(int(self.motor_position))+"R")
 
     def handleCalibInject(self):
-        if self.ui.cal_by_vol_radio.isChecked():
+        """Exactly the same as inject, but more limited. After all, we don't want people calibrating with teaspoons, do we?"""
+
+        #get and calculate input
+        if self.ui.cal_by_vol_radio.isChecked():#by volume
             self.vol = float(self.ui.cal_by_vol_num.text())
             if str(self.ui.cal_by_vol_unit.currentText()) == "mL":
                 pass
@@ -449,29 +460,30 @@ class ControllerWindow(QMainWindow):
                 pass
             elif str(self.ui.cal_by_rot_unit.currentText()) == "no. rev.":
                 self.rad= self.rad*(2*math.pi)
-        print(self.motor.position(),self.rad*self.pos_per_rad)
-        self.pos=self.getPosition()+self.rad*self.pos_per_rad
-        if self.pos <0:
+        
+        self.motor_position=self.getPosition()+self.rad*self.motor_position_per_rad
+        #check input
+        if self.motor_position <0:
             self.ui.console.appendPlainText("warn: could not go past 0 position.  Volume will not be correct! Do not use to recalibrate!")
-            self.pos=0
-        elif self.pos>self.max_pos:
+            self.motor_position=0
+        elif self.motor_position>self.max_pos:
             self.ui.console.appendPlainText("Warn: could not go past max position. Volume will not be correct! Do not use to recalibrate!")
-            self.pos=self.max_pos
-        print(self.pos)
-        self.motor.sendRawCommand("/"+self.pump_char+"A"+str(int(self.pos))+"R")
-        print("/"+self.pump_char+"A"+str(int(self.pos))+"R")
+            self.motor_position=self.max_pos
+        
+        #send!
+        self.motor.sendRawCommand("/"+self.pump_char+"A"+str(int(self.motor_position))+"R")
 
     def handleCalib(self):
-        if self.ui.cal_by_vol_radio.isChecked():
+        """Resets the motor constants."""
+
+        #get and calculate input
+        if self.ui.cal_by_vol_radio.isChecked():#volume
             actVol = float(self.ui.act_vol_num.text())
             if str(self.ui.cal_by_vol_unit.currentText()) == "mL":
                 pass
-            print("oldmLpr: "+str(self.mL_per_rad))
-            self.mL_per_rad=actVol/self.rad
-            print("newmLpr: "+str(self.mL_per_rad))
+            self.mL_per_rad=actVol/self.rad #compare to previous operation
             self.write_xml('syringe_pump_data.xml')
-        else:#by rotations
-            #rotations were entered
+        else:#rotations
             actRad = float(self.ui.act_rot_num.text())
             if str(self.ui.act_rot_unit.currentText())==u"°":
                 actRad=actRad*(math.pi/180.)
@@ -479,33 +491,31 @@ class ControllerWindow(QMainWindow):
                 pass
             elif str(self.ui.act_rot_unit.currentText())=="no. rev.":
                 actRad=actRad*(2*math.pi)
-            print("oldppr: "+str(self.pos_per_rad))
-            self.pos_per_rad=(self.rad*self.pos_per_rad)/actRad
-            print("newppr: "+str(self.pos_per_rad))
+            self.motor_position_per_rad=(self.rad*self.motor_position_per_rad)/actRad #compare to previous operation
             self.write_xml('syringe_pump_data.xml')
 
-    def write(self, text):
-        self.ui.plainTextEdit.insertPlainText(text)
-    
-    def read(self, text):
-        self.ui.plainTextEdit.insertPlainText(text)
-        text_read = ""
-        while self.ui.plainTextEdit.toPlainText[-1] != str('\0'):
-            text_read.append(self.ui.plainTextEdit.toPlainText[-1])
-        return text_read
-    def flush(self):
-        pass
-
 class InitWindow(QDialog):
-    #sig=pyqtSignal()
+    """This window warns the user that initializing the motor may ruin their stuff, and gives them the option to do it or not."""
 
     def __init__(self, parent=None):
+        """Creates the window and all of its UI.
+        
+        Input:
+            parent: opener of this window. Preferrably ControllerWindow.
+        Raises:
+            AttributeError: parent doesn't have the QT slots for this class.
+
+        """
         super(InitWindow, self).__init__()
 
         self.ui= Ui_InitWindow()
         self.ui.setupUi(self)
-        self.ui.buttonBox.accepted.connect(parent.accept_init)
-        self.ui.buttonBox.rejected.connect(parent.reject_init)
+        self.ui.init_button.clicked.connect(parent.accept_init)
+        self.ui.init_button.clicked.connect(self.close)
+        self.ui.entertesting_button.clicked.connect(parent.reject_init)
+        self.ui.entertesting_button.clicked.connect(self.close)
+        self.ui.dontinit_button.clicked.connect(parent.pass_init)
+        self.ui.dontinit_button.clicked.connect(self.close)
 
 
 if __name__ == '__main__':
@@ -515,8 +525,8 @@ if __name__ == '__main__':
     
     wind = ControllerWindow()
     
-    #input= wind.read
-    #sys.stdout = wind
+#    input= wind.read
+#    sys.stdout = wind
     
     wind.show()
     

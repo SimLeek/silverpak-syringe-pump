@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'syringe_pump_controller_ui.ui'
 #
-# Created: Thu Aug 14 13:01:29 2014
+# Created: Thu Aug 14 15:20:14 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -207,16 +207,18 @@ class Ui_MainWindow(object):
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_4.addWidget(self.label_6)
         self.calib_ml_per_rad_line = QtWidgets.QLineEdit(self.calibration_tab)
+        self.calib_ml_per_rad_line.setEnabled(False)
         self.calib_ml_per_rad_line.setObjectName("calib_ml_per_rad_line")
         self.horizontalLayout_4.addWidget(self.calib_ml_per_rad_line)
         self.label_15 = QtWidgets.QLabel(self.calibration_tab)
         self.label_15.setObjectName("label_15")
         self.horizontalLayout_4.addWidget(self.label_15)
         self.calib_pos_per_rad_line = QtWidgets.QLineEdit(self.calibration_tab)
+        self.calib_pos_per_rad_line.setEnabled(False)
         self.calib_pos_per_rad_line.setObjectName("calib_pos_per_rad_line")
         self.horizontalLayout_4.addWidget(self.calib_pos_per_rad_line)
-        self.calib_default_radio = QtWidgets.QRadioButton(self.calibration_tab)
-        self.calib_default_radio.setEnabled(True)
+        self.calib_default_radio = QtWidgets.QCheckBox(self.calibration_tab)
+        self.calib_default_radio.setEnabled(False)
         self.calib_default_radio.setCheckable(True)
         self.calib_default_radio.setChecked(True)
         self.calib_default_radio.setObjectName("calib_default_radio")
@@ -434,7 +436,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

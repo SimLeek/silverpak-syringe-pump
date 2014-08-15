@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Best Syringe Pump UI</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -24,7 +24,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <property name="tabsClosable">
        <bool>false</bool>
@@ -506,7 +506,11 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="calib_ml_per_rad_line"/>
+           <widget class="QLineEdit" name="calib_ml_per_rad_line">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_15">
@@ -516,12 +520,16 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="calib_pos_per_rad_line"/>
+           <widget class="QLineEdit" name="calib_pos_per_rad_line">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="calib_default_radio">
+           <widget class="QCheckBox" name="calib_default_radio">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Default?</string>
