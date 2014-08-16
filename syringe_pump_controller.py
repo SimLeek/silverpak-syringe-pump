@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 # vim: set expandtab tabstop=4:
 
+
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
 from syringe_pump_controller_ui import Ui_MainWindow
 from syringe_pump_init_ui import Ui_InitWindow
+#from PyQt4 import QtGui, QtCore
+#from PyQt4.QtCore import pyqtSignal
+#from PyQt4.QtGui import QApplication, QMainWindow, QDialog
+#from syringe_pump_controller_ui_qt4 import Ui_MainWindow
+#from syringe_pump_init_ui_qt4 import Ui_MainWindow
 import silverpak
 import optparse
 import math
@@ -34,6 +40,8 @@ class ControllerWindow(QMainWindow):
         self.ui.setupUi(self)
 
         #MOTOR INIT SECTION
+        self.motor_position=0 #goes from 0 - (2^31)-1
+
         self.pump_char='1' #output to default pump
         self.parse_xml('syringe_pump_data.xml')
 
@@ -48,8 +56,6 @@ class ControllerWindow(QMainWindow):
 
         except TypeError: #also no motor found
             self.ui.console.appendPlainText(fail_text)
-
-        self.motor_position=0 #goes from 0 - (2^31)-1
 
         #BUTTON INIT SECTION
         self.ui.calibrate_pump_button.clicked.connect(self.handleCalibInject)
@@ -67,6 +73,8 @@ class ControllerWindow(QMainWindow):
         try:
             self.no_max()
             self.no_min()
+            self.show_max_draw()
+            self.show_max_inject()
         except AttributeError:
             #in case of testing mode, motor errors need to be ignored
             pass
@@ -120,6 +128,37 @@ class ControllerWindow(QMainWindow):
 #        """Flushes the UI window console."""
 #        pass
 
+    #---------------#
+    #DISPLAY HELPERS#
+    #---------------#
+
+    def show_max_draw(self):
+        """Sets all three of the max draw indicators to the specified value.
+        
+        input:
+            max_draw (float): the maximum volume available to draw, in mL. 
+        
+        """
+
+        max_draw=(-self.motor_position/self.motor_position_per_rad)*self.mL_per_rad
+
+        self.ui.max_draw_i.setText(str(max_draw))
+        self.ui.max_draw_p.setText(str(max_draw))
+        self.ui.max_draw_c.setText(str(max_draw))
+
+    def show_max_inject(self):
+        """Sets all two of the max draw indicators to the specified value.
+        
+        input:
+            max_inject (float): the maximum volume available to inject, in mL. 
+        
+        """
+
+        max_inject=((self.max_pos-self.motor_position)/self.motor_position_per_rad)*self.mL_per_rad
+
+        self.ui.max_inject_i.setText(str(max_inject))
+        self.ui.max_inject_c.setText(str(max_inject))
+
     #------------------#
     #DATA SERIALIZATION#
     #------------------#
@@ -168,7 +207,7 @@ class ControllerWindow(QMainWindow):
 
         self.ui.calib_ml_per_rad_line.setText(str(self.mL_per_rad))
         self.ui.calib_pos_per_rad_line.setText(str(self.motor_position_per_rad))
-    
+
     def write_xml(self,filename):
         """Serializes data that may change between motors.
 
@@ -254,6 +293,9 @@ class ControllerWindow(QMainWindow):
             self.ui.set_min_button.setChecked(self.is_min_set)
             self.ui.no_min_button.setChecked(not self.is_min_set)
 
+            self.show_max_draw()
+            self.show_max_inject()
+
     def set_max(self):
         """Sets the current position to the maximum cc."""
         if not self.is_max_set:
@@ -266,6 +308,9 @@ class ControllerWindow(QMainWindow):
             self.ui.set_min_button.setChecked(self.is_min_set)
             self.ui.no_min_button.setChecked(not self.is_min_set)
 
+            self.show_max_draw()
+            self.show_max_inject()
+
     def set_min(self):
         """Sets the current position to the minimum cc."""
         if not self.is_min_set:
@@ -276,6 +321,9 @@ class ControllerWindow(QMainWindow):
             self.ui.set_max_button.setChecked(self.is_max_set)
             self.ui.no_max_button.setChecked(not self.is_max_set)
 
+            self.show_max_draw()
+            self.show_max_inject()
+
     def no_min(self):
         """Sets the max position to a high value that you'll never reach."""
         if self.is_min_set:
@@ -285,6 +333,9 @@ class ControllerWindow(QMainWindow):
             self.is_min_set=False
             self.ui.set_max_button.setChecked(self.is_max_set)
             self.ui.no_max_button.setChecked(not self.is_max_set)
+
+            self.show_max_draw()
+            self.show_max_inject()
    
    #-------------------------#
    #IMPORTANT MOTOR FUNCTIONS#
@@ -300,15 +351,19 @@ class ControllerWindow(QMainWindow):
 
         """
         txt=self.motor.sendRawCommand("/"+self.pump_char+"?0")
-        print(str(txt))
+        #print(str(txt))
         n=[int(s) for s in txt.split('\x00') if s.isdigit()]
-        print(n)
+        #print(n)
+
         return int(n[0])
 
     def stop(self):
         """Stops the motor."""
         self.motor.sendRawCommand("/"+self.pump_char+"TR")
         self.motor_position=self.getPosition()
+
+        self.show_max_draw()
+        self.show_max_inject()
 
     #--------------#
     #MAIN FUNCTIONS#
@@ -387,11 +442,34 @@ class ControllerWindow(QMainWindow):
         if pull_vel>732143 or push_vel>732143:
             self.ui.console.appendPlainText("err: motor is not accurate at high speeds.")
             return
+        #wait time has a max of 30 seconds in the documentation
+        #but the motors allow (4 lvl) nested loops for as many as 30000 repeats
+        #This will give us a maximum wait time of 10 days. If a longer time is
+        # needed, you can nest another loop for a max wait of 850 years.
+        if top_wait_time>30000:
+            top_wait_string="gM30000"
+            div=top_wait_time//30000
+            top_wait_string+="G"+str(int(div))
+            mod=top_wait_time%30000
+            top_wait_string+="M"+str(int(mod))
+        else:
+            tope_wait_string="M"+str(int(top_wait_time))
+        if bottom_wait_time>30000:
+            bottom_wait_string="gM30000"
+            bdiv=bottom_wait_time//30000
+            bottom_wait_string+="G"+str(int(bdiv))
+            bmod=bottom_wait_time%30000
+            bottom_wait_string+="M"+str(int(bmod))
+        else:
+            bottom_wait_string="M"+str(int(top_wait_time))
 
         #Send!
-        exe="/"+self.pump_char+"gV"+str(int(pull_vel))+"A"+str(int(pos2))+"M"+str(int(top_wait_time))+"V"+str(int(push_vel))+"A"+str(int(pos1))+"M"+str(int(bottom_wait_time))+"G"+str(int(no_pumps))+"R"
+        exe="/"+self.pump_char+"gV"+str(int(pull_vel))+"A"+str(int(pos2))+top_wait_string+"V"+str(int(push_vel))+"A"+str(int(pos1))+bottom_wait_string+"G"+str(int(no_pumps))+"R"
         print(exe)
         self.motor.sendRawCommand(exe)
+
+        self.show_max_draw()
+        self.show_max_inject()
         
     def handleInject(self):
         """Tells the motor to inject."""
@@ -442,6 +520,9 @@ class ControllerWindow(QMainWindow):
         #Inject!
         self.motor.sendRawCommand("/"+self.pump_char+"A"+str(int(self.motor_position))+"R")
 
+        self.show_max_draw()
+        self.show_max_inject()
+
     def handleCalibInject(self):
         """Exactly the same as inject, but more limited. After all, we don't want people calibrating with teaspoons, do we?"""
 
@@ -473,6 +554,9 @@ class ControllerWindow(QMainWindow):
         #send!
         self.motor.sendRawCommand("/"+self.pump_char+"A"+str(int(self.motor_position))+"R")
 
+        self.show_max_draw()
+        self.show_max_inject()
+
     def handleCalib(self):
         """Resets the motor constants."""
 
@@ -493,6 +577,9 @@ class ControllerWindow(QMainWindow):
                 actRad=actRad*(2*math.pi)
             self.motor_position_per_rad=(self.rad*self.motor_position_per_rad)/actRad #compare to previous operation
             self.write_xml('syringe_pump_data.xml')
+
+        self.show_max_draw()
+        self.show_max_inject()
 
 class InitWindow(QDialog):
     """This window warns the user that initializing the motor may ruin their stuff, and gives them the option to do it or not."""
