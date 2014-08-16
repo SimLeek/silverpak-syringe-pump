@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'syringe_pump_controller_ui.ui'
 #
-# Created: Fri Aug 15 18:21:14 2014
+# Created: Fri Aug 15 19:00:15 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -116,6 +116,10 @@ class Ui_MainWindow(object):
         self.label_17.setAlignment(QtCore.Qt.AlignCenter)
         self.label_17.setObjectName("label_17")
         self.verticalLayout_3.addWidget(self.label_17)
+        self.label_21 = QtWidgets.QLabel(self.pumpin_tab)
+        self.label_21.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_21.setObjectName("label_21")
+        self.verticalLayout_3.addWidget(self.label_21)
         self.label_18 = QtWidgets.QLabel(self.pumpin_tab)
         self.label_18.setAlignment(QtCore.Qt.AlignCenter)
         self.label_18.setObjectName("label_18")
@@ -502,6 +506,7 @@ class Ui_MainWindow(object):
         self.inject_button.setText(_translate("MainWindow", "Inject"))
         self.tabs.setTabText(self.tabs.indexOf(self.injection_tab), _translate("MainWindow", "Injection"))
         self.label_17.setText(_translate("MainWindow", "Note: stroke volume indicates both volume drawn and injected."))
+        self.label_21.setText(_translate("MainWindow", "Note 2: setting No. of pumps to 0 to loop infinitely"))
         self.label_18.setText(_translate("MainWindow", " e.g. 3mL will draw 3mL, then inject 3mL, then repeat."))
         self.label_22.setText(_translate("MainWindow", "Max draw (mL):"))
         self.label_5.setText(_translate("MainWindow", "stroke volume"))
