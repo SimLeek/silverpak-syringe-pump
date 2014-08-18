@@ -85,6 +85,9 @@ class ControllerWindow(QMainWindow):
         self.ui.no_min_button.stateChanged.connect(self.no_min)
         self.ui.no_max_button.stateChanged.connect(self.no_max)
 
+        self.ui.cal_by_vol_radio.clicked.connect(self.set_test_volume_available)
+        self.ui.cal_by_rot_radio.clicked.connect(self.set_test_rot_available)
+
         self.ui.pump_select.currentIndexChanged[str].connect(self.select_pump)
         self.ui.check_status_button.clicked.connect(self.checkStatus)
         self.ui.check_velocity_button.clicked.connect(self.checkVelocity)
@@ -135,6 +138,27 @@ class ControllerWindow(QMainWindow):
     #---------------#
     #DISPLAY HELPERS#
     #---------------#
+
+    def set_test_volume_available(self):
+        self.ui.cal_by_vol_unit.setEnabled(True)
+        self.ui.cal_by_vol_num.setEnabled(True)
+        self.ui.act_vol_unit.setEnabled(True)
+        self.ui.act_vol_num.setEnabled(True)
+        self.ui.cal_by_rot_unit.setEnabled(False)
+        self.ui.cal_by_rot_num.setEnabled(False)
+        self.ui.act_rot_unit.setEnabled(False)
+        self.ui.act_rot_num.setEnabled(False)
+
+    def set_test_rot_available(self):
+        self.ui.cal_by_vol_unit.setEnabled(False)
+        self.ui.cal_by_vol_num.setEnabled(False)
+        self.ui.act_vol_unit.setEnabled(False)
+        self.ui.act_vol_num.setEnabled(False)
+        self.ui.cal_by_rot_unit.setEnabled(True)
+        self.ui.cal_by_rot_num.setEnabled(True)
+        self.ui.act_rot_unit.setEnabled(True)
+        self.ui.act_rot_num.setEnabled(True)
+
 
     def show_max_draw(self):
         """Sets all three of the max draw indicators to the specified value.
