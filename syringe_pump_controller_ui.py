@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'syringe_pump_controller_ui.ui'
 #
-# Created: Fri Aug 15 19:00:15 2014
+# Created: Mon Aug 18 15:10:27 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(707, 494)
+        MainWindow.resize(695, 468)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -120,10 +120,6 @@ class Ui_MainWindow(object):
         self.label_21.setAlignment(QtCore.Qt.AlignCenter)
         self.label_21.setObjectName("label_21")
         self.verticalLayout_3.addWidget(self.label_21)
-        self.label_18 = QtWidgets.QLabel(self.pumpin_tab)
-        self.label_18.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_18.setObjectName("label_18")
-        self.verticalLayout_3.addWidget(self.label_18)
         self.gridLayout_12 = QtWidgets.QGridLayout()
         self.gridLayout_12.setObjectName("gridLayout_12")
         self.max_draw_p = QtWidgets.QLineEdit(self.pumpin_tab)
@@ -389,6 +385,12 @@ class Ui_MainWindow(object):
         self.pump_select.addItem("")
         self.pump_select.addItem("")
         self.verticalLayout_7.addWidget(self.pump_select)
+        self.check_status_button = QtWidgets.QPushButton(self.command_and_stop_pane)
+        self.check_status_button.setObjectName("check_status_button")
+        self.verticalLayout_7.addWidget(self.check_status_button)
+        self.check_velocity_button = QtWidgets.QPushButton(self.command_and_stop_pane)
+        self.check_velocity_button.setObjectName("check_velocity_button")
+        self.verticalLayout_7.addWidget(self.check_velocity_button)
         self.horizontalLayout_7.addLayout(self.verticalLayout_7)
         spacerItem12 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_7.addItem(spacerItem12)
@@ -505,9 +507,8 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "Amount:"))
         self.inject_button.setText(_translate("MainWindow", "Inject"))
         self.tabs.setTabText(self.tabs.indexOf(self.injection_tab), _translate("MainWindow", "Injection"))
-        self.label_17.setText(_translate("MainWindow", "Note: stroke volume indicates both volume drawn and injected."))
+        self.label_17.setText(_translate("MainWindow", "Note: stroke volume indicates both volume drawn and injected.  e.g. 3mL will draw 3mL, then inject 3mL, then repeat."))
         self.label_21.setText(_translate("MainWindow", "Note 2: setting No. of pumps to 0 to loop infinitely"))
-        self.label_18.setText(_translate("MainWindow", " e.g. 3mL will draw 3mL, then inject 3mL, then repeat."))
         self.label_22.setText(_translate("MainWindow", "Max draw (mL):"))
         self.label_5.setText(_translate("MainWindow", "stroke volume"))
         self.pumping_vol_unit.setItemText(0, _translate("MainWindow", "mL"))
@@ -571,6 +572,8 @@ class Ui_MainWindow(object):
         self.pump_select.setItemText(13, _translate("MainWindow", "Pump E"))
         self.pump_select.setItemText(14, _translate("MainWindow", "Pump F"))
         self.pump_select.setItemText(15, _translate("MainWindow", "Pump 0"))
+        self.check_status_button.setText(_translate("MainWindow", "Check Status"))
+        self.check_velocity_button.setText(_translate("MainWindow", "Check Velocity"))
         self.RUN.setText(_translate("MainWindow", "INITIALIZE"))
         self.STOP.setText(_translate("MainWindow", "STOP"))
         self.set_min_button.setText(_translate("MainWindow", "Set Min Vol"))

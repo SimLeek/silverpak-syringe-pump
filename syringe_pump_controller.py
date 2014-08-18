@@ -16,6 +16,7 @@ import optparse
 import math
 import threading
 import xml.etree.ElementTree as ET
+import time
 
 class ControllerWindow(QMainWindow):
     """This class creats a dialogue window for interacting with the silverpak motor when it's part of a syringe pump. 
@@ -75,6 +76,7 @@ class ControllerWindow(QMainWindow):
             self.no_min()
             self.show_max_draw()
             self.show_max_inject()
+            self.checkStatus()
         except AttributeError:
             #in case of testing mode, motor errors need to be ignored
             pass
@@ -84,6 +86,8 @@ class ControllerWindow(QMainWindow):
         self.ui.no_max_button.stateChanged.connect(self.no_max)
 
         self.ui.pump_select.currentIndexChanged[str].connect(self.select_pump)
+        self.ui.check_status_button.clicked.connect(self.checkStatus)
+        self.ui.check_velocity_button.clicked.connect(self.checkVelocity)
 
     def init_motor(self):
         """Initializes the motor using the silverpak init command and sets valid velocity and acceleration values."""
@@ -341,6 +345,61 @@ class ControllerWindow(QMainWindow):
    #IMPORTANT MOTOR FUNCTIONS#
    #-------------------------#
 
+    def checkVelocity(self):
+        """Checks and reports if the motor is running at the correct velocity.
+        
+        Note:
+            This function may not be useful for motors with no encoder wheels.
+        """
+        pos1txt=self.motor.sendRawCommand("/"+self.pump_char+"?0")
+        t1=time.clock()
+        pos2txt=self.motor.sendRawCommand("/"+self.pump_char+"?0")
+        t2=time.clock()
+
+        p1=[int(s) for s in pos1txt.split('\x00') if s.isdigit()]
+        p2=[int(s) for s in pos2txt.split('\x00') if s.isdigit()]
+
+        print(pos1txt)
+        print(pos2txt)
+        print(t1)
+        print(t2)
+        print(p1[0])
+        print(p2[0])
+
+        vMeasured=(p2[0]-p1[0])/(t2-t1)#measure velocity in microsteps / sec
+
+        vReptxt=self.motor.sendRawCommand("/"+self.pump_char+"?2")
+
+        vRep=[int(s) for s in vReptxt.split('\x00') if s.isdigit()]
+        vReported=vRep[0]
+
+        if vMeasured>0:
+            direction="injecting"
+        else:
+            direction="drawing"
+
+        #check if velocity is withing 5% of reuested
+        if vMeasured==0:
+            self.ui.console.appendPlainText("motor is not moving.")
+        elif (abs(vMeasured)-vReported) < 0.05*vReported:
+            percent=100*((abs(vMeasured)-vReported)/vReported)
+            self.ui.console.appendPlainText("Motor is safely "+direction+" within "+str(percent)+"% of requested velocity (R:"+str(vReported)+",M:"+str(vMeasured)+")")
+        else:
+            percent=100*((abs(vMeasured)-vReported)/vReported)
+            self.ui.console.appendPlainText("Motor is unsafely "+direction+" "+str(percent)+"% off from requested velocity (R:"+str(vReported)+",M:"+str(vMeasured)+")")
+            self.ui.console.appendPlainText("Please check again in case this query was run during a start or stop operation.")
+
+
+
+    def checkStatus(self):
+        """Checks if the motor is working"""
+        motor_name=self.motor.sendRawCommand("/"+self.pump_char+"&")
+
+        if motor_name==None:
+            self.ui.console.appendPlainText("Motor did not respond.")
+        else:
+            self.ui.console.appendPlainText("Motor: "+motor_name+" is working.")
+
     def getPosition(self):
         """Gets the current position of the motor
         
@@ -453,7 +512,7 @@ class ControllerWindow(QMainWindow):
             mod=top_wait_time%30000
             top_wait_string+="M"+str(int(mod))
         else:
-            tope_wait_string="M"+str(int(top_wait_time))
+            top_wait_string="M"+str(int(top_wait_time))
         if bottom_wait_time>30000:
             bottom_wait_string="gM30000"
             bdiv=bottom_wait_time//30000
