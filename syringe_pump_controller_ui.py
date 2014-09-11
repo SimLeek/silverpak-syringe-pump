@@ -6,8 +6,17 @@
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
-
-from PyQt5 import QtCore, QtGui, QtWidgets
+import imp
+try:
+    imp.find_module('PyQt5')
+    from PyQt5 import QtCore, QtGui, QtWidgets
+except ImportError:
+    try:
+	imp.find_module('PyQt4')
+        from PyQt4 import QtCore, QtGui
+        from PyQt4 import QtGui as QtWidgets
+    except ImportError:
+        print("Error: neither PyQt4 nor PyQt5 is installed.")
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -551,12 +560,12 @@ class Ui_MainWindow(object):
         self.label_13.setText(_translate("MainWindow", "Actual volume"))
         self.act_vol_unit.setItemText(0, _translate("MainWindow", "mL"))
         self.label_14.setText(_translate("MainWindow", "Actual rotations"))
-        self.act_rot_unit.setItemText(0, _translate("MainWindow", "°"))
+        self.act_rot_unit.setItemText(0, _translate("MainWindow", "�degrees"))
         self.act_rot_unit.setItemText(1, _translate("MainWindow", "θ"))
         self.act_rot_unit.setItemText(2, _translate("MainWindow", "no. rev."))
         self.label_12.setText(_translate("MainWindow", "Rotations"))
         self.cal_by_vol_unit.setItemText(0, _translate("MainWindow", "mL"))
-        self.cal_by_rot_unit.setItemText(0, _translate("MainWindow", "°"))
+        self.cal_by_rot_unit.setItemText(0, _translate("MainWindow", "�degrees"))
         self.cal_by_rot_unit.setItemText(1, _translate("MainWindow", "θ"))
         self.cal_by_rot_unit.setItemText(2, _translate("MainWindow", "no. rev."))
         self.label_11.setText(_translate("MainWindow", "Test volume"))

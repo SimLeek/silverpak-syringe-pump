@@ -1,22 +1,45 @@
 #!/usr/bin/env python3
 # vim: set expandtab tabstop=4:
 
+import imp
+try:
+    imp.find_module('PyQt5')
+    from PyQt5.QtCore import QObject, pyqtSignal
+    from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
+    from syringe_pump_controller_ui import Ui_MainWindow
+    from syringe_pump_init_ui import Ui_InitWindow
+except ImportError:
+    try:
+        imp.find_module('PyQt4')
+        from PyQt4 import QtGui, QtCore
+        from PyQt4.QtCore import pyqtSignal
+        from PyQt4.QtGui import QApplication, QMainWindow, QDialog
+        from syringe_pump_controller_ui import Ui_MainWindow
+        from syringe_pump_init_ui import Ui_InitWindow
 
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
-from syringe_pump_controller_ui import Ui_MainWindow
-from syringe_pump_init_ui import Ui_InitWindow
-#from PyQt4 import QtGui, QtCore
-#from PyQt4.QtCore import pyqtSignal
-#from PyQt4.QtGui import QApplication, QMainWindow, QDialog
-#from syringe_pump_controller_ui_qt4 import Ui_MainWindow
-#from syringe_pump_init_ui_qt4 import Ui_MainWindow
+    except ImportError:
+        print("Error: neither PyQt4 nor PyQt5 is installed.")
 import silverpak
 import optparse
 import math
 import threading
 import xml.etree.ElementTree as ET
 import time
+
+class MotorData:
+    def __init__(self, char):
+        self.char=char
+        self.motor_position=1073741823#(2^30)-1
+        self.is_max_set=False
+        self.is_min_set=False
+        self.max_pos=2147483647#(2^31)-1
+        #experimentally decent default calibration values
+        self.mL_per_rad=0.016631691553103064
+        self.motor_position_per_rad=8156.69083345965
+        #last pump operations, for calibration reasons
+        self.vol=0
+        self.rad=0
+
 
 class ControllerWindow(QMainWindow):
     """This class creats a dialogue window for interacting with the silverpak motor when it's part of a syringe pump. 
@@ -215,7 +238,7 @@ class ControllerWindow(QMainWindow):
                 elif child.tag=='pos_per_rad':
                     self.motor_position_per_rad=float(child.text)
 
-        except FileNotFoundError:
+        except EnvironmentError:
             pass
 
         #check data
@@ -618,9 +641,9 @@ class ControllerWindow(QMainWindow):
         else:#by rotations
             self.vol=None
             self.rad = float(self.ui.cal_by_rot_num.text())
-            if str(self.ui.cal_by_rot_unit.currentText()) == u"°":
+            if str(self.ui.cal_by_rot_unit.currentText()) == "degrees":
                 self.rad = self.rad*(math.pi/180.)
-            elif str(self.ui.cal_by_rot_unit.currentText()) == "θ":
+            elif str(self.ui.cal_by_rot_unit.currentText()) == "radians":
                 pass
             elif str(self.ui.cal_by_rot_unit.currentText()) == "no. rev.":
                 self.rad= self.rad*(2*math.pi)
@@ -652,9 +675,9 @@ class ControllerWindow(QMainWindow):
             self.write_xml('syringe_pump_data.xml')
         else:#rotations
             actRad = float(self.ui.act_rot_num.text())
-            if str(self.ui.act_rot_unit.currentText())==u"°":
+            if str(self.ui.act_rot_unit.currentText())=="degrees":
                 actRad=actRad*(math.pi/180.)
-            elif str(self.ui.act_rot_unit.currentText())== "θ":
+            elif str(self.ui.act_rot_unit.currentText())== "radians":
                 pass
             elif str(self.ui.act_rot_unit.currentText())=="no. rev.":
                 actRad=actRad*(2*math.pi)
