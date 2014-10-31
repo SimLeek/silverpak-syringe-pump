@@ -100,7 +100,7 @@ class ControllerWindow(QMainWindow):
             self.show_max_draw()
             self.show_max_inject()
             self.checkStatus()
-        except AttributeError:
+        except (AttributeError, TypeError) as e:
             #in case of testing mode, motor errors need to be ignored
             pass
         self.ui.set_min_button.stateChanged.connect(self.set_min)
@@ -567,7 +567,7 @@ class ControllerWindow(QMainWindow):
             bmod=bottom_wait_time%30000
             bottom_wait_string+="M"+str(int(bmod))
         else:
-            bottom_wait_string="M"+str(int(top_wait_time))
+            bottom_wait_string="M"+str(int(bottom_wait_time))
 
         #Send!
         exe="/"+self.pump_char+"gV"+str(int(pull_vel))+"A"+str(int(pos2))+top_wait_string+"V"+str(int(push_vel))+"A"+str(int(pos1))+bottom_wait_string+"G"+str(int(no_pumps))+"R"
