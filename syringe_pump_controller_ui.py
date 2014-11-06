@@ -5,7 +5,7 @@
 # Created: Mon Aug 18 16:55:13 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
-# WARNING! All changes made in this file will be lost!
+# UI file is gone, do whatever you want
 import imp
 try:
     imp.find_module('PyQt5')
@@ -404,6 +404,19 @@ class Ui_MainWindow(object):
         self.pump_select.addItem("")
         self.verticalLayout_7.addWidget(self.pump_select)
         self.check_status_button = QtWidgets.QPushButton(self.command_and_stop_pane)
+        ###
+        self.xml_select = QtWidgets.QComboBox(self.command_and_stop_pane)
+        self.xml_select.setObjectName("xml_select")
+        self.hxml_layout = QtWidgets.QHBoxLayout()
+        self.hxml_layout.setObjectName("hxml_layout")
+        self.hxml_layout.addWidget(self.xml_select)
+        self.xml_refresh_button = QtWidgets.QPushButton(self.command_and_stop_pane)
+        self.xml_refresh_button.setObjectName("xml_refresh_button")
+        self.xml_refresh_button.setText("refresh")
+        self.hxml_layout.addWidget(self.xml_refresh_button)
+        self.verticalLayout_7.addLayout(self.hxml_layout)
+        
+        
         self.check_status_button.setObjectName("check_status_button")
         self.verticalLayout_7.addWidget(self.check_status_button)
         self.check_velocity_button = QtWidgets.QPushButton(self.command_and_stop_pane)
@@ -590,6 +603,9 @@ class Ui_MainWindow(object):
         self.pump_select.setItemText(13, _translate("MainWindow", "Pump E"))
         self.pump_select.setItemText(14, _translate("MainWindow", "Pump F"))
         self.pump_select.setItemText(15, _translate("MainWindow", "Pump 0"))
+        #self.xml_select.addItem("")
+        ###
+        
         self.check_status_button.setText(_translate("MainWindow", "Check Status"))
         self.check_velocity_button.setText(_translate("MainWindow", "Check Velocity"))
         self.RUN.setText(_translate("MainWindow", "INITIALIZE"))

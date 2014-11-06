@@ -4,6 +4,7 @@
 import imp
 try:
     imp.find_module('PyQt5')
+    from PyQt5 import QtCore
     from PyQt5.QtCore import QObject, pyqtSignal
     from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
     from syringe_pump_controller_ui import Ui_MainWindow
@@ -25,6 +26,7 @@ import math
 import threading
 import xml.etree.ElementTree as ET
 import time
+import os
 
 class MotorData:
     def __init__(self, char):
@@ -90,6 +92,8 @@ class ControllerWindow(QMainWindow):
         self.ui.pump_button.clicked.connect(self.handlePump)
         self.ui.STOP.clicked.connect(self.stop)         
         self.ui.RUN.clicked.connect(self.init_motor)
+        self.populate_xml()
+        self.ui.xml_refresh_button.clicked.connect(self.populate_xml)
 
         self.ui.no_min_button.setChecked(True)
         self.ui.no_max_button.setChecked(True)
@@ -288,6 +292,23 @@ class ControllerWindow(QMainWindow):
         self.ui.calib_default_radio.setChecked(False)
         self.ui.calib_ml_per_rad_line.setText(str(self.motor.mL_per_rad))
         self.ui.calib_pos_per_rad_line.setText(str(self.motor.motor_position_per_rad))
+
+    def populate_xml(self):
+        """checks the current directory for xml files and adds 
+            the paths."""
+
+        for i in range(self.ui.xml_select.count()):
+            self.ui.xml_select.removeItem(i)
+
+        #thanks to: http://stackoverflow.com/a/3207973/782170
+        for(path, names, fnames) in os.walk('.'):
+            for n in fnames:
+                d=path+n
+                end=d[-4:]
+                if end.lower()=='.xml':
+                    print d
+                    self.ui.xml_select.addItem("")
+                    self.ui.xml_select.setItemText(self.ui.xml_select.count()-1, QtCore.QCoreApplication.translate("MainWindow", d))
 
     #--------------------#
     #CHANGE PUMP SETTINGS#
