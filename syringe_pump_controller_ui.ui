@@ -11,15 +11,342 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CES Syringe Pump Version 0.9.0</string>
+   <string>CES Syringe Pump Version 0.9.1U</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_10">
+      <item>
+       <spacer name="horizontalSpacer_13">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#aa0000;&quot;&gt;Not Connected&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::RichText</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
+      <widget class="QWidget" name="connection_tab">
+       <attribute name="title">
+        <string>Connection</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_9">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_10">
+          <item>
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Warning: When you initialize the motor, it will spin a few revolutions. Please make sure that you have room for this.</string>
+            </property>
+            <property name="scaledContents">
+             <bool>false</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_8">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="1" column="2">
+           <widget class="QComboBox" name="baud_select">
+            <property name="minimumSize">
+             <size>
+              <width>128</width>
+              <height>0</height>
+             </size>
+            </property>
+            <item>
+             <property name="text">
+              <string>9600</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>19200</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>38400</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Baud:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QComboBox" name="port_select">
+            <property name="minimumSize">
+             <size>
+              <width>128</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Port:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="portscan_button">
+            <property name="text">
+             <string>Scan</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Address:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="6">
+           <spacer name="horizontalSpacer_14">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="2" column="2">
+           <widget class="QComboBox" name="pump_select">
+            <property name="minimumSize">
+             <size>
+              <width>128</width>
+              <height>0</height>
+             </size>
+            </property>
+            <item>
+             <property name="text">
+              <string>Pump 1</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 2</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 3</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 4</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 5</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 6</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 7</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 8</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 9</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump A</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump B</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump C</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump D</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump E</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump F</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Pump 0</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="2" column="3">
+           <widget class="QPushButton" name="pumpnew_button">
+            <property name="text">
+             <string>New</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QPushButton" name="pumpswitch_button">
+            <property name="text">
+             <string>Switch To</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="5">
+           <widget class="QPushButton" name="pumpdelete_button">
+            <property name="text">
+             <string>Delete</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="6">
+           <widget class="QCheckBox" name="pump_exists">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Exists?</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <property name="tristate">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_7">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <spacer name="horizontalSpacer_12">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="RUN">
+            <property name="text">
+             <string>INITIALIZE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_11">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="Injection_tab">
        <attribute name="title">
         <string>Injection</string>
@@ -1012,7 +1339,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QTextBrowser" name="console">
+       <widget class="QPlainTextEdit" name="console">
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -1110,101 +1437,10 @@
           </disabled>
          </palette>
         </property>
-        <property name="html">
-         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
        </widget>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QComboBox" name="pump_select">
-          <item>
-           <property name="text">
-            <string>Pump 1</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 2</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 3</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 4</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 5</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 6</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 7</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 8</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 9</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump A</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump B</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump C</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump D</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump E</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump F</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pump 0</string>
-           </property>
-          </item>
-         </widget>
-        </item>
         <item>
          <widget class="QPushButton" name="check_velocity_button">
           <property name="text">
@@ -1223,13 +1459,6 @@ p, li { white-space: pre-wrap; }
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QPushButton" name="RUN">
-          <property name="text">
-           <string>INITIALIZE</string>
-          </property>
-         </widget>
-        </item>
         <item>
          <widget class="QPushButton" name="STOP">
           <property name="text">
