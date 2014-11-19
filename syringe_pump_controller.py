@@ -100,7 +100,8 @@ class ControllerWindow(QMainWindow):
         self.ui.baud_select.currentIndexChanged[str].connect(self.select_baud)
         self.ui.check_status_button.clicked.connect(self.checkStatus)
         self.ui.check_velocity_button.clicked.connect(self.checkVelocity) 
-        
+        self.ui.cal_expect_unit.currentIndexChanged[str].connect(self.calResultUnit)
+
         #USER NOTIFICATION
         self.ui.console.appendPlainText("No motors connected yet. Use the connection tab to connect motors.")
 
@@ -133,6 +134,9 @@ class ControllerWindow(QMainWindow):
         self.show_max_draw()
         self.show_max_inject()
         self.checkStatus()
+
+        self.ui.calib_ml_per_rad_line.setText(str(self.motor.mL_per_rad))
+        self.ui.calib_pos_per_rad_line.setText(str(self.motor.motor_position_per_rad))
 
         #done
         self.ui.console.appendPlainText("Motor initialized.")
@@ -167,6 +171,9 @@ class ControllerWindow(QMainWindow):
 
         self.ui.max_inject_i.setText(str(max_inject))
         self.ui.max_inject_c.setText(str(max_inject))
+
+    def calResultUnit(self, text):
+        self.ui.cal_expect_unit_label.setText(text)
 
     #------------------#
     #DATA SERIALIZATION#
