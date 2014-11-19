@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>InitWindow</class>
+ <widget class="QDialog" name="InitWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Warning</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -68,7 +68,7 @@ p, li { white-space: pre-wrap; }
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="entertesting_button">
        <property name="text">
         <string>Testing Mode</string>
        </property>
@@ -88,14 +88,14 @@ p, li { white-space: pre-wrap; }
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="dontinit_button">
        <property name="text">
         <string>Don't Initialize</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="init_button">
        <property name="text">
         <string>Initialize</string>
        </property>

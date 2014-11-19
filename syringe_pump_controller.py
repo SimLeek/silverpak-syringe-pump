@@ -64,7 +64,7 @@ class ControllerWindow(QMainWindow):
             self.motorGroup.motordict['1']=self.motor 
         else:
             index=int(syringe_motor.convertToNum(self.motor.motor_address),16)
-            print(index)
+            
             index=index-1
             if index<0:
                 index=15
@@ -209,7 +209,7 @@ class ControllerWindow(QMainWindow):
                 d=path+n
                 end=d[-4:]
                 if end.lower()=='.xml':
-                    print (d)
+                    
                     self.ui.xml_select.addItem("")
                     self.ui.xml_select.setItemText(self.ui.xml_select.count()-1, QtCore.QCoreApplication.translate("MainWindow", d))
 
@@ -277,11 +277,11 @@ class ControllerWindow(QMainWindow):
 
         """
         num=text[-1:]
-        print(num)
-        try:
-            print(self.motorGroup.motordict[num])
-        except KeyError:
-            print("KE")
+        
+        #try:
+        #    print(self.motorGroup.motordict[num])
+        #except KeyError:
+        #    print("KE")
 
         try:
             if self.motorGroup.motordict.get(num,None)==None:
@@ -378,6 +378,10 @@ class ControllerWindow(QMainWindow):
         
         Note:
             This function may not be useful for motors with no encoder wheels.
+        Depricated:
+            Too quick to be accurate.
+            Needs to be implemented using a callback to be accurate.
+        
         """
         pos1txt=self.motor.sendRawCommand("/"+self.motor.motor_address+"?0")
         t1=time.clock()
@@ -387,24 +391,24 @@ class ControllerWindow(QMainWindow):
         p1=[int(s) for s in pos1txt.split('\x00') if s.isdigit()]
         p2=[int(s) for s in pos2txt.split('\x00') if s.isdigit()]
 
-        print(pos1txt)
-        print(pos2txt)
-        print(t1)
-        print(t2)
-        print(p1[0])
-        print(p2[0])
+        #print(pos1txt)
+        #print(pos2txt)
+        #print(t1)
+        #print(t2)
+        #print(p1[0])
+        #print(p2[0])
 
         vMeasured=(p2[0]-p1[0])/(t2-t1)#measure velocity in microsteps / sec
 
         vReptxt=self.motor.sendRawCommand("/"+self.motor.motor_address+"?2")
 
-        print(vReptxt)
+        #print(vReptxt)
 
         vRep=[int(s) for s in vReptxt.split('\x00') if s.isdigit()]
         vReported=vRep[0]*32
 
-        print(vRep)
-        print(vReported)
+        #print(vRep)
+        #print(vReported)
 
         if vMeasured>0:
             direction="injecting"
@@ -416,14 +420,14 @@ class ControllerWindow(QMainWindow):
             self.ui.console.appendPlainText("motor is not moving.")
         elif (abs(vMeasured)-vReported) < 0.05*vReported:
             percent=100*((abs(vMeasured)-vReported)/vReported)
-            self.ui.console.appendPlainText("Motor is safely "+direction+" within "+str(percent)+"% of requested velocity (R:"+str(vReported)+",M:"+str(vMeasured)+")")
+            self.ui.console.appendPlainText("motor is moving.")
+            #self.ui.console.appendPlainText("Motor is safely "+direction+" within "+str(percent)+"% of requested velocity (R:"+str(vReported)+",M:"+str(vMeasured)+")")
         else:
             percent=100*((abs(vMeasured)-vReported)/vReported)
-            self.ui.console.appendPlainText("Motor is unsafely "+direction+" "+str(percent)+"% off from requested velocity (R:"+str(vReported)+",M:"+str(vMeasured)+")")
-            self.ui.console.appendPlainText("Please check again in case this query was run during a start or stop operation.")
-
-
-
+            self.ui.console.appendPlainText("motor is moving.")
+            #self.ui.console.appendPlainText("Motor is unsafely "+direction+" "+str(percent)+"% off from requested velocity (R:"+str(vReported)+",M:"+str(vMeasured)+")")
+            #self.ui.console.appendPlainText("Please check again in case this query was run during a start or stop operation.")
+        
     def checkStatus(self):
         """Checks if the motor is working"""
         motor_name=self.motor.sendRawCommand("/"+self.motor.motor_address+"&")
@@ -565,61 +569,33 @@ class ControllerWindow(QMainWindow):
         self.show_max_draw()
         self.show_max_inject()
 
-    def handleCalibInject(self):
-        """Exactly the same as inject, but more limited. After all, we don't want people calibrating with teaspoons, do we?"""
-
-        #get and calculate input
-        if self.ui.cal_by_vol_radio.isChecked():#by volume
-            self.motor.vol = float(self.ui.cal_by_vol_num.text())
-            if str(self.ui.cal_by_vol_unit.currentText()) == "mL":
-                pass
-            self.motor.rad = self.motor.vol/self.motor.mL_per_rad
-        else:#by rotations
-            self.motor.vol=None
-            self.motor.rad = float(self.ui.cal_by_rot_num.text())
-            if str(self.ui.cal_by_rot_unit.currentText()) == "degrees":
-                self.motor.rad = self.motor.rad*(math.pi/180.)
-            elif str(self.ui.cal_by_rot_unit.currentText()) == "radians":
-                pass
-            elif str(self.ui.cal_by_rot_unit.currentText()) == "no. rev.":
-                self.motor.rad= self.motor.rad*(2*math.pi)
-        
-        self.motor.motor_position=self.getPosition()+self.motor.rad*self.motor.motor_position_per_rad
-        #check input
-        if self.motor.motor_position <0:
-            self.ui.console.appendPlainText("warn: could not go past 0 position.  Volume will not be correct! Do not use to recalibrate!")
-            self.motor.motor_position=0
-        elif self.motor.motor_position>self.motor.max_pos:
-            self.ui.console.appendPlainText("Warn: could not go past max position. Volume will not be correct! Do not use to recalibrate!")
-            self.motor.motor_position=self.motor.max_pos
-        
-        #send!
-        self.motor.sendRawCommand("/"+self.motor.motor_address+"A"+str(int(self.motor.motor_position))+"R")
-
-        self.show_max_draw()
-        self.show_max_inject()
-
     def handleCalib(self):
-        """Resets the motor constants."""
+        """Resets the motor constants.""" 
 
-        #get and calculate input
-        if self.ui.cal_by_vol_radio.isChecked():#volume
-            actVol = float(self.ui.act_vol_num.text())
-            if str(self.ui.cal_by_vol_unit.currentText()) == "mL":
-                pass
-            self.motor.mL_per_rad=actVol/self.motor.rad #compare to previous operation
-            self.write_xml('syringe_pump_data.xml')
-        else:#rotations
-            actRad = float(self.ui.act_rot_num.text())
-            if str(self.ui.act_rot_unit.currentText())=="degrees":
-                actRad=actRad*(math.pi/180.)
-            elif str(self.ui.act_rot_unit.currentText())== "radians":
-                pass
-            elif str(self.ui.act_rot_unit.currentText())=="no. rev.":
-                actRad=actRad*(2*math.pi)
-            self.motor.motor_position_per_rad=(self.motor.rad*self.motor.motor_position_per_rad)/actRad #compare to previous operation
-            self.write_xml('syringe_pump_data.xml')
+        if self.ui.cal_expect_unit.currentText()=="mL":
+            rad=float(self.ui.cal_expected_line.text())/self.motor.mL_per_rad
+            actVol=float(self.ui.cal_result_line.text())
+            self.motor.mL_per_rad=actVol/rad
 
+        elif self.ui.cal_expect_unit.currentText()=="Rotations":
+            expRad = float(self.ui.cal_expected_line.text())*2*math.pi
+            actRad = float(self.ui.cal_result_line.text())*2*math.pi
+            mpos = expRad*self.motor.motor_position_per_rad
+            self.motor.motor_position_per_rad=mpos/actRad
+
+        elif self.ui.cal_expect_unit.currentText()=="Radians":
+            expRad = float(self.ui.cal_expected_line.text())
+            actRad = float(self.ui.cal_result_line.text())
+            mpos = expRad*self.motor.motor_position_per_rad
+            self.motor.motor_position_per_rad=mpos/actRad
+
+        elif self.ui.cal_expect_unit.currentText()=="Degrees":
+            expRad = float(self.ui.cal_expected_line.text())*(math.pi/180)
+            actRad = float(self.ui.cal_result_line.text())*(math.pi/180)
+            mpos = expRad*self.motor.motor_position_per_rad
+            self.motor.motor_position_per_rad=mpos/actRad
+
+        self.write_xml('syringe_pump_data.xml')
         self.show_max_draw()
         self.show_max_inject()
 

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CES Syringe Pump Version 0.9.1U</string>
+   <string>CES Syringe Pump Version 0.9.2 Alpha</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -45,7 +45,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="connection_tab">
        <attribute name="title">
@@ -87,6 +87,9 @@
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout_2">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
           <item row="1" column="2">
            <widget class="QComboBox" name="baud_select">
             <property name="minimumSize">
@@ -143,14 +146,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Address:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="6">
+          <item row="0" column="7">
            <spacer name="horizontalSpacer_14">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -162,6 +158,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Address:</string>
+            </property>
+           </widget>
           </item>
           <item row="2" column="2">
            <widget class="QComboBox" name="pump_select">
@@ -274,22 +277,10 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="6">
-           <widget class="QCheckBox" name="pump_exists">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
+          <item row="2" column="7">
+           <widget class="QLabel" name="pump_exists">
             <property name="text">
-             <string>Exists?</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <property name="tristate">
-             <bool>false</bool>
+             <string>Exists</string>
             </property>
            </widget>
           </item>
@@ -1219,7 +1210,7 @@
          </spacer>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <layout class="QHBoxLayout" name="hbox214">
           <property name="sizeConstraint">
            <enum>QLayout::SetDefaultConstraint</enum>
           </property>
@@ -1231,7 +1222,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit"/>
+           <widget class="QLineEdit" name="cal_expected_line"/>
           </item>
           <item>
            <widget class="QComboBox" name="cal_expect_unit">
@@ -1265,7 +1256,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_2"/>
+           <widget class="QLineEdit" name="cal_result_line"/>
           </item>
           <item>
            <widget class="QLabel" name="cal_expect_unit_label">
