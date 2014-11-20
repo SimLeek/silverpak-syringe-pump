@@ -98,6 +98,10 @@ class MotorGroup:
                 mL_per_rad.text=str(motorClass.mL_per_rad)
                 pos_per_rad=ET.SubElement(motorElement, 'pos_per_rad')
                 pos_per_rad.text=str(motorClass.motor_position_per_rad)
+                motor_pos=ET.SubElement(motorElement, 'motor_pos')
+                motor_pos.text=str(motorClass.motor_position)
+                max_pos=ET.SubElement(motorElement, 'max_pos')
+                max_pos.text=str(motorClass.max_pos)
 
         #write xml
         tree=ET.ElementTree(root)
@@ -117,6 +121,9 @@ class MotorGroup:
         """
 
         xml_good=True
+        
+        self.motordict.clear()
+
 
         #scan doc
         try:
@@ -137,6 +144,10 @@ class MotorGroup:
                         self.motordict[num].mL_per_rad=float(child.text)
                     elif child.tag=='pos_per_rad':
                         self.motordict[num].motor_position_per_rad=float(child.text)
+                    elif child.tag=='motor_pos':
+                        self.motordict[num].motor_position=float(child.text)
+                    elif child.tag=='max_pos':
+                        self.motordict[num].max_pos=float(child.text)
                 
                 #check data
                 if not hasattr(self,'mL_per_rad'):
@@ -144,6 +155,12 @@ class MotorGroup:
                     xml_good=False
                 if not hasattr(self,'pos_per_rad'):
                     self.motordict[num].motor_position_per_rad=8156.69083345965#found experimentally(on free motor)
+                    xml_good=False
+
+                if not hasattr(self, 'motor_pos'):
+                    xml_good=False
+
+                if not hasattr(self, 'max_pos'):
                     xml_good=False
          
 
@@ -193,10 +210,11 @@ class Motor:
             
             self.srl_port.port=port
             self.srl_port.baudrate=baud
-            self.srl_port.timeout=0.02
+            self.srl_port.timeout=0.02 
             self.srl_port.open()
             response = self.sendRawCommand("/"+motor_address+"Q")
-
+            print('/'+motor_address+"Q")
+            print(response)
             if response != None:
                 self.motor_address=motor_address
                 return True

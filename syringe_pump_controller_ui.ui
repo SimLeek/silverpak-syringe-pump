@@ -45,7 +45,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="connection_tab">
        <attribute name="title">
@@ -711,6 +711,64 @@
          </layout>
         </item>
         <item>
+         <spacer name="verticalSpacer_9">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_26">
+            <property name="text">
+             <string>Routine:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBox">
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_2">
+            <property name="text">
+             <string>Scan</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>Load</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_3">
+            <property name="text">
+             <string>Save</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <spacer name="verticalSpacer_3">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -1197,7 +1255,7 @@
          </layout>
         </item>
         <item>
-         <spacer name="verticalSpacer_5">
+         <spacer name="verticalSpacer_10">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -1210,21 +1268,18 @@
          </spacer>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="hbox214">
+         <layout class="QGridLayout" name="gridLayout_10">
           <property name="sizeConstraint">
            <enum>QLayout::SetDefaultConstraint</enum>
           </property>
-          <item>
+          <item row="0" column="0">
            <widget class="QLabel" name="label_9">
             <property name="text">
              <string>Expected:</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLineEdit" name="cal_expected_line"/>
-          </item>
-          <item>
+          <item row="0" column="2">
            <widget class="QComboBox" name="cal_expect_unit">
             <item>
              <property name="text">
@@ -1248,17 +1303,14 @@
             </item>
            </widget>
           </item>
-          <item>
-           <widget class="QLabel" name="label_10">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_15">
             <property name="text">
-             <string>Result:</string>
+             <string>Calibration File:</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLineEdit" name="cal_result_line"/>
-          </item>
-          <item>
+          <item row="1" column="2">
            <widget class="QLabel" name="cal_expect_unit_label">
             <property name="minimumSize">
              <size>
@@ -1268,6 +1320,89 @@
             </property>
             <property name="text">
              <string>mL</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="cal_result_line"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Result:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QPushButton" name="cal_load_button">
+            <property name="text">
+             <string>Load</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="cal_file_name"/>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="cal_expected_line"/>
+          </item>
+          <item row="2" column="1">
+           <spacer name="verticalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="3" column="1">
+           <widget class="QComboBox" name="cal_file_list">
+            <property name="minimumSize">
+             <size>
+              <width>190</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QPushButton" name="cal_scan_button">
+            <property name="text">
+             <string>Scan</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QPushButton" name="cal_save_button">
+            <property name="text">
+             <string>Save</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5">
+           <spacer name="horizontalSpacer_16">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="4" column="5">
+           <widget class="QLabel" name="label_25">
+            <property name="text">
+             <string>Autosave is On</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>

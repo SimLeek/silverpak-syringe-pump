@@ -47,10 +47,13 @@ class ControllerWindow(QMainWindow):
         super(ControllerWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        
+       
+        #variables
+        self.xml_filename='syringe_pump_data.xml' 
+
         #MOTOR CLASS INIT
         self.motorGroup=syringe_motor.MotorGroup()
-        self.motorGroup.load('syringe_pump_data.xml')
+        self.motorGroup.load(self.xml_filename)
         try:
             try:
                 self.motor=self.motorGroup.motordict.iteritems().next()
@@ -101,7 +104,13 @@ class ControllerWindow(QMainWindow):
         self.ui.check_status_button.clicked.connect(self.checkStatus)
         self.ui.check_velocity_button.clicked.connect(self.checkVelocity) 
         self.ui.cal_expect_unit.currentIndexChanged[str].connect(self.calResultUnit)
+        self.ui.cal_file_list.currentIndexChanged[str].connect(self.xmlDefaultSaveName)
+        self.ui.cal_scan_button.clicked.connect(self.populate_xml)
+        self.ui.cal_load_button.clicked.connect(self.load_xml)
+        self.ui.cal_save_button.clicked.connect(self.save_xml)
+        self.populate_xml()
 
+        
         #USER NOTIFICATION
         self.ui.console.appendPlainText("No motors connected yet. Use the connection tab to connect motors.")
 
@@ -175,6 +184,9 @@ class ControllerWindow(QMainWindow):
     def calResultUnit(self, text):
         self.ui.cal_expect_unit_label.setText(text)
 
+    def xmlDefaultSaveName(self, text):
+        self.ui.cal_file_name.setText(text)
+
     #------------------#
     #DATA SERIALIZATION#
     #------------------#
@@ -207,18 +219,29 @@ class ControllerWindow(QMainWindow):
         """checks the current directory for xml files and adds 
             the paths."""
 
-        for i in range(self.ui.xml_select.count()):
-            self.ui.xml_select.removeItem(i)
-
+        self.ui.cal_file_list.clear()#remove everything
+        
         #thanks to: http://stackoverflow.com/a/3207973/782170
         for(path, names, fnames) in os.walk('.'):
             for n in fnames:
                 d=path+n
                 end=d[-4:]
                 if end.lower()=='.xml':
-                    
-                    self.ui.xml_select.addItem("")
-                    self.ui.xml_select.setItemText(self.ui.xml_select.count()-1, QtCore.QCoreApplication.translate("MainWindow", d))
+                    self.ui.cal_file_list.addItem("")
+                    self.ui.cal_file_list.setItemText(self.ui.cal_file_list.count()-1, QtCore.QCoreApplication.translate("MainWindow", d[1:]))
+
+    def load_xml(self):
+        """handles load xml button. Switches calibration data."""
+        name=self.ui.cal_file_list.currentText()
+        self.xml_filename=name
+        self.parse_xml(name)
+
+    def save_xml(self):
+        """handles save xml button. Switches calibration data to new file."""
+        self.xml_filename=self.ui.cal_file_name.text()
+        self.write_xml(self.xml_filename)
+
+        self.populate_xml()
 
     #--------------------#
     #CHANGE PUMP SETTINGS#
@@ -239,7 +262,7 @@ class ControllerWindow(QMainWindow):
                    
         
         
-        self.motorGroup.serialize('syringe_pump_data.xml') 
+        self.motorGroup.serialize(self.xml_filename) 
 
     def new_pump(self):
         """Creates a new pump."""
@@ -255,7 +278,7 @@ class ControllerWindow(QMainWindow):
         else:
             self.ui.console.appendPlainText("err: motor already exists")
         
-        self.motorGroup.serialize('syringe_pump_data.xml') 
+        self.motorGroup.serialize(self.xml_filename) 
    
     def delete_pump(self):
         "Deletes an existing pump."
@@ -273,7 +296,7 @@ class ControllerWindow(QMainWindow):
         else:
             self.ui.console.appendPlainText("err: Motor does not exist")
 
-        self.motorGroup.serialize('syringe_pump_data.xml') 
+        self.motorGroup.serialize(self.xml_filename) 
 
 
     def select_pump(self, text):
@@ -369,6 +392,10 @@ class ControllerWindow(QMainWindow):
 
     def select_port(self, string):
         self.motor.select_port=serial.Serial(string)
+        print(self.motor.motor_address)
+        print(self.motor.srl_port.baudrate)
+        print(string)
+        
         self.motor.connect(string,self.motor.srl_port.baudrate,self.motor.motor_address)
         self.ui.console.appendPlainText("Port changed. Pleas initialize.")
 
@@ -602,7 +629,7 @@ class ControllerWindow(QMainWindow):
             mpos = expRad*self.motor.motor_position_per_rad
             self.motor.motor_position_per_rad=mpos/actRad
 
-        self.write_xml('syringe_pump_data.xml')
+        self.write_xml(self.xml_filename)
         self.show_max_draw()
         self.show_max_inject()
 
