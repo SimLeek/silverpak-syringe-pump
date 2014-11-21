@@ -98,9 +98,16 @@ class ControllerWindow(QMainWindow):
         self.ui.pumpnew_button.clicked.connect(self.new_pump)
         self.ui.pumpdelete_button.clicked.connect(self.delete_pump)
         self.ui.pumpswitch_button.clicked.connect(self.switch_pump)
-        self.ui.port_select.currentIndexChanged[str].connect(self.select_port)
+        #self.ui.port_select.currentIndexChanged[str].connect(self.select_port)
         self.ui.portscan_button.clicked.connect(self.scan_ports)
-        self.ui.baud_select.currentIndexChanged[str].connect(self.select_baud)
+        self.ui.portswitch_button.clicked.connect(self.switch_port)
+        try:
+            self.scan_ports()#also triggers select_port def and connects
+            self.switch_port()
+        except:
+            pass #ignore any serial errors and init the ui no matter what
+        #self.ui.baud_select.currentIndexChanged[str].connect(self.select_baud)
+        self.ui.baudswitch_button.clicked.connect(self.switch_baud)
         self.ui.check_status_button.clicked.connect(self.checkStatus)
         self.ui.check_velocity_button.clicked.connect(self.checkVelocity) 
         self.ui.cal_expect_unit.currentIndexChanged[str].connect(self.calResultUnit)
@@ -113,6 +120,8 @@ class ControllerWindow(QMainWindow):
         
         #USER NOTIFICATION
         self.ui.console.appendPlainText("No motors connected yet. Use the connection tab to connect motors.")
+
+        self.ui.console.appendPlainText("Warning: Once you initialize, you may have to reset the max/min injection amounts, because the motor sometimes refuses commands immediately after initialization.")
 
     def init_motor(self):
         """Initializes the motor using the silverpak init command and sets valid velocity and acceleration values."""
@@ -387,21 +396,24 @@ class ControllerWindow(QMainWindow):
     #--------------------------#
 
     def scan_ports(self):
+        self.ui.port_select.clear()
         for p in syringe_motor.scan_ports():
             self.ui.port_select.addItem(p)
 
-    def select_port(self, string):
-        self.motor.select_port=serial.Serial(string)
+    def switch_port(self):
+        self.motor.select_port=serial.Serial(str(self.ui.port_select.currentText()))
         print(self.motor.motor_address)
         print(self.motor.srl_port.baudrate)
         print(string)
         
-        self.motor.connect(string,self.motor.srl_port.baudrate,self.motor.motor_address)
+        if not self.motor.connect(string,self.motor.srl_port.baudrate,self.motor.motor_address):
+            self.ui.console.appendPlainText("WARNING: Motor did not respond!")
         self.ui.console.appendPlainText("Port changed. Pleas initialize.")
 
-    def select_baud(self, text):
-        self.motor.srl_port.baudrate=int(text)
-        
+    def switch_baud(self):
+        baudrate=int(str(self.ui.baud_select.currentText()))
+        self.motor.sendRawCommand("/"+self.motor.motor_address+"b"+str(baudrate)+"R")
+        self.motor.srl_port.baudrate=baudrate
         self.ui.console.appendPlainText("Baud changed. Please initialize.")
    #-------------------------#
    #IMPORTANT MOTOR FUNCTIONS#

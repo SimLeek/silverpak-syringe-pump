@@ -221,8 +221,10 @@ class Motor:
 
             
                 pass
-            self.disconnect()
-            return False
+            #ignoring this, because I had a case where I could send and couldn't
+            # receive. It was still useful to send something.
+            #self.disconnect()
+            return False #However, I can give a warning
 
     def disconnect(self):
         """"""
