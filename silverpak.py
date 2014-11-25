@@ -909,14 +909,15 @@ def SearchComPorts(portName=Silverpak.DefaultPortname, baudRate=Silverpak.Defaul
         # Search all COM ports
         if os.name == 'posix' or os.name == 'mac':
             for filename in os.listdir('/dev/'):
-                if fnmatch.fnmatch(filename, 'cu.usbserial*') or fnmatch.fnmatch(filename, 'tty*') or fnmatch.fnmatch(filename, 'COM*'):
+                if fnmatch.fnmatch(filename, 'cu.usbserial*') or fnmatch.fnmatch(filename, 'ttyUSB*') or fnmatch.fnmatch(filename, 'COM*'):
                     portNames.append('/dev/' + filename)
+                    print ('/dev/' + filename)
         else:
             portNames = ["COM%i" % i for i in range(1, 10)]
     else:
         # Search a specific COM port
         portNames = [portName]
-    return [SearchBaudRates(portName, baudRate, driverAddress) for portName in portNames]
+    return [SearchBaudRates(portName) for portName in portNames]
 
 def SearchBaudRates(portName, baudRate=Silverpak.DefaultBaudRate, driverAddress=Silverpak.DefaultDriverAddress):
     """
