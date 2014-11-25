@@ -401,13 +401,21 @@ class ControllerWindow(QMainWindow):
             self.ui.port_select.addItem(p)
 
     def switch_port(self):
-        self.motor.select_port=serial.Serial(str(self.ui.port_select.currentText()))
+        string=str(self.ui.port_select.currentText())
+        baud=int(self.ui.baud_select.currentText())
+        text=str(self.ui.pump_select.currentText())
+        num=text[-1:]
+        sym=syringe_motor.convertToSymbol(num)
+
+                
+        if not self.motor.connect(string,baud,sym):
+            self.ui.console.appendPlainText("WARNING: Motor did not respond!")
+        
         print(self.motor.motor_address)
         print(self.motor.srl_port.baudrate)
         print(string)
-        
-        if not self.motor.connect(string,self.motor.srl_port.baudrate,self.motor.motor_address):
-            self.ui.console.appendPlainText("WARNING: Motor did not respond!")
+
+
         self.ui.console.appendPlainText("Port changed. Pleas initialize.")
 
     def switch_baud(self):

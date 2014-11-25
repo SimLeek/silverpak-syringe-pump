@@ -208,10 +208,23 @@ class Motor:
         """"""
         with self.srl_rlock:
             
-            self.srl_port.port=port
+            try:
+                del self.srl_port
+            except AttributeError:
+                pass #already deleted
+            try:
+                self.srl_port=serial.Serial(port)
+            except serial.serialutil.SerialException as se:
+                #todo: make this call the main window and print to its console
+                print(se.errno)
+                print (se.strerror)
+
+            self.srl_port.bytesize=8
+            self.srl_port.parity=serial.PARITY_NONE
+            self.srl_port.stopbits=serial.STOPBITS_ONE
             self.srl_port.baudrate=baud
             self.srl_port.timeout=0.02 
-            self.srl_port.open()
+            #self.srl_port.open() port opens automatically
             response = self.sendRawCommand("/"+motor_address+"Q")
             print('/'+motor_address+"Q")
             print(response)
@@ -224,6 +237,7 @@ class Motor:
             #ignoring this, because I had a case where I could send and couldn't
             # receive. It was still useful to send something.
             #self.disconnect()
+            raise serial.serialutil.SerialException("Did not receive any data")
             return False #However, I can give a warning
 
     def disconnect(self):
