@@ -1,1 +1,3 @@
 see documentation in silverpak.py
+
+Note: to use .ui files, edit with pyqt and compile to .py with pyuic4 or pyuic5
